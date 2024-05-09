@@ -1,25 +1,5 @@
 {% extends "base.html" %}
- <style>
-    /* Style the link like a button */
-    a.button {
-        display: inline-block;
-        padding: 10px 20px;
-        text-align: center;
-        text-decoration: none;
-        background-color: #4CAF50;
-        color: white;
-        border: 1px solid #4CAF50;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
 
-    /* Hover effect */
-    a.button:hover {
-        background-color: #45a049;
-        color: white;
-    }
-</style>
 {% block content %}
     <h1>Bahnhofübersicht</h1>
 
@@ -48,17 +28,22 @@
                     <td>{{ station.street }} {{ station.no }}, {{ station.city }}</td>
                     <td>{{ station.zipcode }}</td>
                       {% if current_user.is_authenticated and current_user.isAdmin %}
-                     <td><a href="{{  url_for('trainstationDelete',station_id=station.id)}}"method="POST">Löschen</a></td>
-                    <td class="edit-button"><form action="{{ url_for('trainstationEdit', station_id=station.id) }}" method="post">
-                            <button type="submit" class="delete-button">Edit
-                            </button>
-                        </form>
+                    <td>
+            <form action="{{ url_for('trainstationDelete', station_id=station.id) }}" method="post">
+                <input type="submit" value="Löschen" class="edit-button">
+            </form>
+        </td>
+        <td>
+            <form action="{{ url_for('trainstationEdit', station_id=station.id) }}" method="post">
+                <input type="submit" value="Bearbeiten" class="edit-button">
+            </form>
+        </td>
                          {% endif %}
                 </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <a class="button" href="{{ url_for('trainstationNew') }}">Neu</a>
+    <a class="create_button" href="{{ url_for('trainstationNew') }}">Neu</a>
 
 {% endblock %}

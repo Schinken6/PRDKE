@@ -61,6 +61,113 @@
             font-weight: bold;
             padding-right: 20px;
         }
+        .table-station {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 20px 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.table-station th, .table-station td {
+    padding: 20px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-station th {
+    background-color: rgb(195, 105, 101);
+    color: white;
+    border-radius: 3px 3px 0 0;
+}
+
+.table-station tr:last-child td {
+    border-bottom: none;
+}
+
+.table-station tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.table-station tr:hover {
+    background-color: #ddd;
+}
+
+.edit-button {
+    background-color: rgb(195, 105, 101);
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.edit-button:hover {
+    background-color: rgb(215, 125, 121);
+}
+
+.create_button {
+    background-color: rgb(195, 105, 101);
+    color: white;
+    padding: 5px 10px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.create_button:hover {
+    background-color: rgb(215, 125, 121);
+}
+
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    display: block;
+    width: 100%;
+    height: calc(1.5em + .75rem + 2px);
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #495057;
+    background-color: #fff;
+    background-clip: padding-box;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+}
+
+.form-control:focus {
+    color: #495057;
+    background-color: #fff;
+    border-color: rgb(195, 105, 101);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(195, 105, 101, 0.25);
+}
+
+.btn-primary {
+    color: #fff;
+    background-color: rgb(195, 105, 101);
+    border-color: rgb(195, 105, 101);
+}
+
+.btn-primary:hover {
+    color: #fff;
+    background-color: rgb(215, 125, 121);
+    border-color: rgb(215, 125, 121);
+}
+
     </style>
 </head>
 <body>
