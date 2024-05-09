@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for, request
+from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
 from app.forms import LoginForm, TrainstationForm
 from flask_login import current_user, login_user, logout_user, login_required
@@ -59,7 +59,7 @@ def trainstation():
 def trainstationNew():
     form = TrainstationForm()
     if form.validate_on_submit():
-        trainstation = Station(name=form.name.data, street=form.street.data, no=form.no.data, zipcode=form.zipcode.data,city=form.city.data)
+        trainstation = Station(name=form.name.data, street=form.street.data, no=form.no.data, zipcode=form.zipcode.data,city=form.city.data, country=form.country.data)
         db.session.add(trainstation)
         db.session.commit()
         flash('Bahnhof angelegt!')
@@ -69,8 +69,21 @@ def trainstationNew():
 
 @app.route('/trainsstationEdit/<station_id>', methods=['GET', 'POST'])
 @login_required
-def trainstationEdit():
-    return render_template('trainstationNew.html', title='Edit Trainstation')
+def trainstationEdit(station_id):
+    station = Station.query.get_or_404(station_id)
+    form = TrainstationForm(obj=station)
+    if form.validate_on_submit():
+        station.name = form.name.data
+        station.street = form.street.data
+        station.no = form.no.data
+        station.zipcode = form.zipcode.data
+        station.city = form.city.data
+        station.country = form.country.data
+        db.session.add(station)
+        db.session.commit()
+        flash('Änderungen gespeichert!')
+        return redirect(url_for('trainstation'))
+    return render_template('trainstationNew.html', title='Edit Trainstation', form=form)
 
 @app.route('/trainsstationDelete/<station_id>', methods=['GET', 'POST'])
 @login_required
@@ -80,3 +93,22 @@ def trainstationDelete(station_id):
     db.session.delete(deletestation)
     db.session.commit()
     return redirect(url_for('trainstation'))
+
+@app.route('/Bahnhof/all')
+def all_stations():
+    stations = Station.query.all()
+    stations_list = []
+
+    for station in stations:
+        station_dict = {
+            'id': station.id,
+            'name': station.name,
+            'street': station.street,
+            'no': station.no,
+            'zipcode': station.zipcode,
+            'city': station.city,
+            'country': station.country
+        }
+        stations_list.append(station_dict)
+
+    return jsonify(stations_list)
