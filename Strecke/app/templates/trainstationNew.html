@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Bahnhof anlegen</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.name.label }} {{ form.name(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.street.label }} {{ form.street(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.no.label }} {{ form.no(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.zipcode.label }} {{ form.zipcode(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.city.label }} {{ form.city(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.country.label }} {{ form.country(class="form-control") }}
+        </div>
+        <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+{% endblock %}

@@ -14,8 +14,7 @@ class User(UserMixin, db.Model):
                                              unique=True)
     password_hash: so.Mapped[Optional[str]] = so.mapped_column(sa.String(256))
 
-    posts: so.WriteOnlyMapped['Post'] = so.relationship(
-        back_populates='author')
+    isAdmin = db.Column(db.Boolean, default=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -26,19 +25,20 @@ class User(UserMixin, db.Model):
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
-class Post(db.Model):
-    id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    body: so.Mapped[str] = so.mapped_column(sa.String(140))
-    timestamp: so.Mapped[datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.now(timezone.utc))
-    user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
-                                               index=True)
-
-    author: so.Mapped[User] = so.relationship(back_populates='posts')
-
-    def __repr__(self):
-        return '<Post {}>'.format(self.body)
 
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+
+
+class Station(db.Model):
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(140))
+    street = db.Column(db.String(140))
+    no = db.Column(db.Integer)
+    zipcode = db.Column(db.Integer)
+    city = db.Column(db.String(140))
+    country = db.Column(db.String(140))
+    xcoord = db.Column(db.String(140))
+    ycoord = db.Column(db.String(140))
