@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        width:30%;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #4169E1;
+        box-shadow: 0 0 8px rgba(65, 105, 225, 0.5);
+    }
+
+    button.btn-primary {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+</style>
+    <h1>Ticket kaufen</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            {{ form.price.label(class="form-label") }}
+            {{ form.price(size=32, class="form-control") }}
+            {% for error in form.price.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.departure_date.label(class="form-label") }}
+            {{ form.departure_date(class="form-control") }}
+            {% for error in form.departure_date.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.arrival_date.label(class="form-label") }}
+            {{ form.arrival_date(class="form-control") }}
+            {% for error in form.arrival_date.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.start_station.label(class="form-label") }}
+            {{ form.start_station(size=50, class="form-control") }}
+            {% for error in form.start_station.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.end_station.label(class="form-label") }}
+            {{ form.end_station(size=50, class="form-control") }}
+            {% for error in form.end_station.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.status.label(class="form-label") }}
+            {{ form.status(size=15, class="form-control") }}
+            {% for error in form.status.errors %}
+                <span>[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kaufen</button>
+    </form>
+{% endblock %}
