@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        font-size: 0.9em;
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: rgb(195, 105, 101);
+        color: white;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f8f8f8;
+    }
+
+    input[type="text"],
+    input[type="date"] {
+        width: 100%;
+        padding: 8px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button {
+        color: white;
+        background-color: rgb(64, 38, 237);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #365f9c;
+    }
+
+    form {
+        margin: 0;
+    }
+</style>
+<h1>Benutzer: {{ user.username }}</h1>
+<hr>
+<table>
+    <thead>
+        <tr>
+            <th>Käufer</th>
+            <th>Preis</th>
+            <th>Abfahrtsdatum</th>
+            <th>Ankunftsdatum</th>
+            <th>Startstation</th>
+            <th>Endstation</th>
+            <th>Status</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ticket in tickets %}
+        <tr>
+            <td>{{ ticket.owner.username }}</td>
+            <td>
+                <form action="{{ url_for('update_ticket', ticket_id=ticket.id) }}" method="post">
+                <input type="text" name="price" value="{{ ticket.price }}">
+            </td>
+            <td>
+                <input type="date" name="departure_date" value="{{ ticket.departure_date }}">
+            </td>
+            <td>
+                <input type="date" name="arrival_date" value="{{ ticket.arrival_date }}">
+            </td>
+            <td>
+                <input type="text" name="start_station" value="{{ ticket.start_station }}">
+            </td>
+            <td>
+                <input type="text" name="end_station" value="{{ ticket.end_station }}">
+            </td>
+            <td>
+                <input type="text" name="status" value="{{ ticket.status }}">
+            </td>
+            <td>
+                <button type="submit">Aktualisieren</button>
+                </form>
+                <form action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" method="post">
+                    <button type="submit">Löschen</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

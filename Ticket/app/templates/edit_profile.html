@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .form-control {
+        width: 30%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #4169E1;
+        box-shadow: 0 0 8px rgba(65, 105, 225, 0.5);
+    }
+
+    button.btn-primary {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: inline-block;
+    }
+
+</style>
+
+<h1>Profil bearbeiten</h1>
+<form action="" method="post">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+        {{ form.username.label(class="form-label") }}
+        {{ form.username(size=32, class="form-control") }}
+        {% for error in form.username.errors %}
+            <span>[{{ error }}]</span>
+        {% endfor %}
+    </div>
+
+    <div class="form-group">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(size=32, class="form-control") }}
+        {% for error in form.email.errors %}
+            <span>[{{ error }}]</span>
+        {% endfor %}
+    </div>
+
+    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
+</form>
+{% endblock %}

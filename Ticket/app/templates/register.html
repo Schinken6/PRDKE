@@ -1,0 +1,36 @@
+{% extends "prelogin.html" %}
+
+{% block content %}
+    <h1>Registrierung</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username(size=32, class="custom-input", placeholder="Benutzername") }}<br>
+            {% for error in form.username.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.email(size=32, class="custom-input", placeholder="E-Mail") }}<br>
+            {% for error in form.email.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password(size=32, class="custom-input", placeholder="Passwort") }}<br>
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password2(size=32, class="custom-input", placeholder="Passwort wiederholen") }}<br>
+            {% for error in form.password2.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(class='large-button') }}</p>
+    </form>
+    <br>
+    <hr>
+    <p>Bereits ein Mitglied? <a href="{{ url_for('login') }}">Anmelden</a></p>
+{% endblock %}
