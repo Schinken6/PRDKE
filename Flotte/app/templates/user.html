@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Wagen verwalten</h1>
+    <h1>Benutzer: {{ user.username }}</h1>
+    <hr>
+    <table>
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Spurbreite</th>
+                <th>Zugkraft</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for railcar in railcars %}
+            <tr>
+                <td>{{ railcar.owner.username }}</td>
+                <td>
+                    <form action="{{ url_for('update_railcar', railcar_id=railcar.id) }}" method="post">
+                        <input type="text" name="track_width" value="{{ railcar.track_width }}">
+                </td>
+                <td>
+                        <input type="text" name="max_tensile_force" value="{{ railcar.max_tensile_force }}">
+                </td>
+                <td>
+                        <button type="submit">Aktualisieren</button>
+                    </form>
+                    <form action="{{ url_for('delete_railcar', railcar_id=railcar.id) }}" method="post">
+                        <button type="submit">Löschen</button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
