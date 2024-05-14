@@ -1,0 +1,21 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>Halteplan</h1>
+        <div class="content">
+
+            <form action="/stationplan/update/{{stationplan.id}}"  method="POST">
+                <br><br>
+                <label>Name</label>
+                <input  type="text" name="name" id="name" value="{{stationplan.name}}"> <br>
+                <label> Startbahnhof</label>
+                <input  type="text" name="startstation" id="startstation"value="{{stationplan.startstation}}"> <br>
+                <label> Endbahnhof</label>
+                <input type="text" name="endstation" id="endstation"value="{{stationplan.endstation}}"> <br>
+                <label>Preis</label>
+                <input type="text" name="price" id="price" value="{{stationplan.price}}"> <br>
+                <input type="submit" value="Halteplan ändern">
+            </form>
+        </div>
+{% endblock %}

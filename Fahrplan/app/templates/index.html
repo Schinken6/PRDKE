@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <h1>Fahrplan-Informationssystem</h1>
+   <p><a href="{{ url_for('stationplan') }}">Halteplan</a></p>
+   <p> <a href="{{ url_for('edit_profile') }}">Fahrplan</a></p>
+   <p> <a href="{{ url_for('stationplan') }}">Fahrtdurchführungen</a></p>
+   <p> <a href="{{ url_for('stationplan') }}">Mitarbeiter</a></p>
+
+</div>
+
+   <!-- {% for post in posts %}
+    <div><p>{{ post.author.username }} says: <b>{{ post.body }}</b></p></div>
+    {% endfor %} -->
+{% endblock %}
