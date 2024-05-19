@@ -100,20 +100,21 @@ def admin():
 @login_required
 def new_promotion():
     form = NewPromotionForm()
+    today_date = datetime.today().strftime('%Y-%m-%d')
     if form.validate_on_submit():
         promotion = Promotion(
             name=form.name.data,
             discount=form.discount.data,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            route=form.route.data if form.route.data else None,
+            route=form.route.data if form.route.data != '' else None,
             global_promotion=form.global_promotion.data
         )
         db.session.add(promotion)
         db.session.commit()
         flash('Neue Aktion erfolgreich erstellt!')
         return redirect(url_for('admin'))
-    return render_template('add_promotion.html', title='Neue Aktion anlegen', form=form)
+    return render_template('add_promotion.html', title='Neue Aktion anlegen', form=form, today_date=today_date)
 
 @app.route('/delete_promotion/<int:promotion_id>', methods=['GET'])
 @login_required

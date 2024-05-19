@@ -71,6 +71,6 @@ class NewPromotionForm(FlaskForm):
     start_date = DateField('Startdatum', validators=[DataRequired()], format='%Y-%m-%d')
     end_date = DateField('Enddatum', validators=[DataRequired()], format='%Y-%m-%d')
     route = SelectField('Strecke (optional)', validators=[],
-                        choices=[('LINZ-WELS', 'LINZ-WELS'), ('WIEN-GRAZ', 'WIEN-GRAZ')])
+                        choices=[('',''), ('LINZ-WELS', 'LINZ-WELS'), ('WIEN-GRAZ', 'WIEN-GRAZ')])
     global_promotion = BooleanField('globale Aktion')
     submit = SubmitField('Speichern')
