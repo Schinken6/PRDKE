@@ -1,0 +1,86 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .form-container {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        max-width: 600px;
+        margin: 20px auto;
+    }
+
+    input[type="text"], input[type="number"], input[type="date"], select {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        box-sizing: border-box;
+        border: 2px solid #ccc;
+        border-radius: 4px;
+        outline: none;
+        background-color: #fff;
+        font-size: 16px;
+    }
+
+    input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus, select:focus {
+        border-color: #4169E1;
+        box-shadow: 0 0 8px rgba(65, 105, 225, 0.6);
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: bold;
+    }
+
+    button {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        cursor: pointer;
+        border-radius: 4px;
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+    }
+</style>
+
+<div class="form-container">
+    <h2>Neue Aktion anlegen</h2>
+    <form method="post">
+        {{ form.hidden_tag() }}
+        <div>
+            {{ form.name.label }}<br>
+            {{ form.name(size=32) }}
+        </div>
+        <div>
+            {{ form.discount.label }}<br>
+            {{ form.discount(size=32) }}
+        </div>
+        <div>
+            {{ form.start_date.label }}<br>
+            {{ form.start_date() }}
+        </div>
+        <div>
+            {{ form.end_date.label }}<br>
+            {{ form.end_date() }}
+        </div>
+        <div>
+            {{ form.route.label }}<br>
+            {{ form.route() }}
+        </div>
+        <div>
+            {{ form.global_promotion.label }}<br>
+            {{ form.global_promotion() }}
+        </div>
+        <button type="submit">Speichern</button>
+    </form>
+</div>
+{% endblock %}

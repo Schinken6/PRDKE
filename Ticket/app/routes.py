@@ -2,10 +2,10 @@ from datetime import datetime
 
 from flask import request, render_template, flash, redirect, url_for
 from app import app, db
-from app.forms import LoginForm, RegistrationForm, BuyTicketForm
+from app.forms import LoginForm, RegistrationForm, BuyTicketForm, NewPromotionForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
-from app.models import User, Ticket
+from app.models import User, Ticket, Promotion
 from flask_login import logout_user, login_required
 from urllib.parse import urlsplit
 from app.forms import EditProfileForm
@@ -48,10 +48,10 @@ def login():
             flash('Invalid username or password')
             return redirect(url_for('login'))
         login_user(user, remember=form.remember_me.data)
-        next_page = request.args.get('next')
-        if not next_page or urlsplit(next_page).netloc != '':
-            next_page = url_for('index')
-        return redirect(next_page)
+        if user.is_admin is True:
+            return redirect(url_for('admin'))
+
+        return redirect(url_for('index'))
 
     return render_template('login.html', title='Sign In', form=form)
 
@@ -66,7 +66,16 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data)
+        user = User(
+            username=form.username.data,
+            email=form.email.data,
+            firstname=form.firstname.data,
+            lastname=form.lastname.data,
+            street=form.street.data,
+            zip=form.zip.data,
+            city=form.city.data,
+            is_admin=False
+        )
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
@@ -79,12 +88,45 @@ def register():
 def user(username):
     user = db.first_or_404(sa.select(User).where(User.username == username))
     tickets = db.session.query(Ticket).filter_by(user_id=current_user.id).all()
-    posts = [
-        {'author': user, 'body': 'Test post #1'},
-        {'author': user, 'body': 'Test post #2'}
-    ]
-    return render_template('user.html', user=user, posts=posts, tickets=tickets)
+    return render_template('user.html', user=user, tickets=tickets)
 
+@app.route('/admin', methods=['GET', 'POST'])
+@login_required
+def admin():
+    promotions = Promotion.query.all()
+    return render_template('admin.html', title='Admin Seite', promotions=promotions)
+
+@app.route('/add_promotion', methods=['GET', 'POST'])
+@login_required
+def new_promotion():
+    form = NewPromotionForm()
+    if form.validate_on_submit():
+        promotion = Promotion(
+            name=form.name.data,
+            discount=form.discount.data,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            route=form.route.data if form.route.data else None,
+            global_promotion=form.global_promotion.data
+        )
+        db.session.add(promotion)
+        db.session.commit()
+        flash('Neue Aktion erfolgreich erstellt!')
+        return redirect(url_for('admin'))
+    return render_template('add_promotion.html', title='Neue Aktion anlegen', form=form)
+
+@app.route('/delete_promotion/<int:promotion_id>', methods=['GET'])
+@login_required
+def delete_promotion(promotion_id):
+    promotion = Promotion.query.get_or_404(promotion_id)
+    ticket_count = db.session.query(Ticket).filter(Ticket.promotion_id == promotion_id).count()
+    if ticket_count > 0:
+        flash('Die Aktion kann nicht gelöscht werden, da sie bereits auf %d gekaufte Tickets angewandt wurde!' % ticket_count, 'error')
+        return redirect(url_for('admin'))
+    db.session.delete(promotion)
+    db.session.commit()
+    flash('Promotion erfolgreich gelöscht!', 'success')
+    return redirect(url_for('admin'))
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():

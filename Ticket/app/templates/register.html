@@ -1,9 +1,49 @@
 {% extends "prelogin.html" %}
 
 {% block content %}
+    <style>
+        .content-area {
+        width: 20%;
+        position: absolute;
+        right: 20%;
+        top: 10%;
+        justify-content: center;
+        height: 100vh;
+    }
+    </style>
     <h1>Registrierung</h1>
     <form action="" method="post">
         {{ form.hidden_tag() }}
+        <p>
+            {{ form.firstname(size=32, class="custom-input", placeholder="Vorname") }}<br>
+            {% for error in form.firstname.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.lastname(size=32, class="custom-input", placeholder="Nachname") }}<br>
+            {% for error in form.lastname.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.street(size=32, class="custom-input", placeholder="Straße") }}<br>
+            {% for error in form.street.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.zip(size=32, class="custom-input", placeholder="PLZ") }}<br>
+            {% for error in form.zip.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.city(size=32, class="custom-input", placeholder="Stadt") }}<br>
+            {% for error in form.city.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
         <p>
             {{ form.username(size=32, class="custom-input", placeholder="Benutzername") }}<br>
             {% for error in form.username.errors %}
@@ -30,7 +70,6 @@
         </p>
         <p>{{ form.submit(class='large-button') }}</p>
     </form>
-    <br>
     <hr>
     <p>Bereits ein Mitglied? <a href="{{ url_for('login') }}">Anmelden</a></p>
 {% endblock %}

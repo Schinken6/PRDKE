@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    {% if title %}
-    <title>{{ title }} - Ticketsoftware</title>
-    {% else %}
-    <title>Ticketsoftware</title>
-    {% endif %}
+    <title>{{ title }} - Ticketsoftware - Admin</title>
     <style>
         body, html {
             margin: 0;
@@ -36,22 +32,18 @@
             box-sizing: border-box;
         }
 
-        .sidebar a {
-            text-decoration: none;
-            color: white;
-            padding: 10px;
-            margin: 5px 0;
-            display: block;
-        }
 
         .outercontent {
             flex-grow: 1;
             padding: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .innercontent {
             flex-grow: 1;
-            padding: 0 20px 20px 40px;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .topbar {
@@ -74,19 +66,10 @@
 <body>
     <div class="container">
         <div class="sidebar">
-            <a href="{{ url_for('index') }}">Home</a>
-            {% if current_user.is_anonymous %}
-            <a href="{{ url_for('login') }}">Login</a>
-            {% else %}
-            <a href="{{ url_for('user', username=current_user.username) }}">Ticketübersicht</a>
-            <a href="{{ url_for('buy_ticket') }}">Ticket kaufen</a>
-            <a href="{{ url_for('edit_profile') }}">Profil bearbeiten</a>
-            <a href="{{ url_for('logout') }}">Logout</a>
-            {% endif %}
         </div>
         <div class="outercontent">
             <div class="topbar">
-                <span class="email">{{ current_user.email if not current_user.is_anonymous else 'Gast' }}</span>
+                <span class="email">{{ current_user.username }}</span>
             </div>
             <div class="innercontent">
                 {% with messages = get_flashed_messages() %}
