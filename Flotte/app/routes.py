@@ -86,7 +86,7 @@ def user(username):
         {'author': user, 'body': 'Test post #1'},
         {'author': user, 'body': 'Test post #2'}
     ]
-    return render_template('user.html', user=user, posts=posts, railcars=railcars)
+    return render_template('wagen_verwalten.html', user=user, posts=posts, railcars=railcars)
 
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
