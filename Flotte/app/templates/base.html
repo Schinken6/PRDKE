@@ -42,6 +42,8 @@
         .content {
             flex-grow: 1;
             padding: 0 20px 20px 40px;
+            justify-content: center;
+            align-items: center;
         }
 
         .topbar {
@@ -55,6 +57,147 @@
             margin: 0 -20px 0 -20px; /* Corrects for the padding introduced by content and sidebar */
             box-sizing: border-box;
         }
+
+
+        .header {
+            padding: 50px;
+            display: flex;
+            justify-content: center; /* Align items horizontally at the center */
+            position: relative; /* Allows absolute positioning inside */
+        }
+
+        .user-info {
+            font-weight: bold;
+            position: absolute; /* Position it absolutely to control its placement directly */
+            left: 20px; /* Align 'root' to the left */
+            top: 10px; /* Align 'root' to vertically center, adjust as needed */
+        }
+
+        h1 {
+            margin: 0; /* Remove margin to help with centering */
+        }
+
+        .tab {
+            display: flex;
+            justify-content: space-around; /* This will add space between the buttons */
+            align-items: center; /* Vertically center the buttons in the tab */
+            padding: 5px; /* Padding around the buttons */
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+
+        .tab a {
+            flex: 1; /* Make each button take equal space */
+            background-color: #757575; /* Initial button background color */
+            color: black;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 10px 16px;
+            transition: 0.3s;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            border-radius: 20px;
+            margin: 4px; /* Controls spacing between buttons */
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        .tab a:hover {
+            background-color: lightgray; /* Lighter grey for hover */
+        }
+
+        .tab a.active {
+            background-color: lightgray; /* Darker grey for active state no current state implemented */
+        }
+
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .header h1 {
+            text-align: center;
+        }
+
+        .tab {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .tab a {
+            margin: 0 10px;
+            text-decoration: none;
+            color: black;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: auto;
+            text-align: center;
+
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: center;
+        }
+
+        input[type="text"] {
+            border: none;
+            text-align: center;
+        }
+
+        button {
+            width: 100%;
+            padding: 5px;
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e8e8e8;
+        }
+
+
+
+
+
+
+
+
+    /* does nothing */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         .email {
             font-weight: bold;

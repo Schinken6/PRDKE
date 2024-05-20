@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>Wagen verwalten</h1>
+</div>
+<div class="tab">
+    <a href="{{ url_for('train') }}">Triebwagen</a>
+    <a href="{{ url_for('edit_profile') }}">Personenwagen</a>
+    <a href="{{ url_for('logout') }}">Zug</a>
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>TriebwagenID</th>
+            <th>Spurbreite in mm</th>
+            <th>Zugkraft in t</th>
+            <th>ZugID</th>
+            <th>Bearbeiten</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for railcar in railcars %}
+        <tr>
+            <td>{{ railcar.id }}</td>
+        <form action="{{ url_for('update_railcar', railcar_id=railcar.id) }}" method="post">
+            <td><input type="text" name="track_width" value="{{ railcar.track_width }}"></td>
+            <td><input type="text" name="max_tensile_force" value="{{ railcar.max_tensile_force }}"></td>
+            <td>
+                will be replaced by the trainID in the future
+            </td>
+            <td>
+                <button type="submit">Aktualisieren</button>
+        </form>
+        <form action="{{ url_for('delete_railcar', railcar_id=railcar.id) }}" method="post">
+                <button type="submit">Löschen</button>
+            </td>
+        </form>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
