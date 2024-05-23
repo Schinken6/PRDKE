@@ -22,20 +22,19 @@
         <tr>
             <td>{{ railcar.id }}</td>
             <td>
-                <form action="{{ url_for('update_railcar', railcar_id=railcar.id) }}" method="post">
+                <form class="icon" action="{{ url_for('update_railcar', railcar_id=railcar.id) }}" method="post">
                     <select name="track_width" class="input-fields">
-
                         <option value="1000">1000</option>
                         <option value="1435">1435</option>
                         <option selected style="display: none">{{ railcar.track_width }}</option>
                     </select>
             </td>
-            <td><input type="number" name="max_tensile_force" value="{{ railcar.max_tensile_force }}" class="input-fields" step="10"></td>
+            <td><input type="number" name="max_tensile_force" value="{{ railcar.max_tensile_force }}" class="input-fields" min="1" step="1"></td>
             <td>traindID</td>
-            <td><button type="submit" class="icon"><i class="fa-solid fa-user-pen"></i></button>
+            <td><button type="submit" class="icon"><i class="fa-solid fa-user-pen "></i></button>
                 </form>
-                <form action="{{ url_for('delete_railcar', railcar_id=railcar.id) }}" method="post">
-                    <button type="submit" class="icon" ><i class="fa-solid fa-trash"></i></button>
+                <form class="icon" action="{{ url_for('delete_railcar', railcar_id=railcar.id) }}" method="post">
+                    <button type="submit" class="icon" ><i class="fa-solid fa-trash "></i></button>
                 </form>
             </td>
         </tr>
