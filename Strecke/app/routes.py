@@ -1,12 +1,14 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
-from app.forms import LoginForm, TrainstationForm
+from app.forms import LoginForm, TrainstationForm, UserForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
 from app.models import User
 from urllib.parse import urlsplit
-from app.models import Station
+from app.models import Station, Address
+
+
 
 @app.route('/')
 @app.route('/index')
@@ -51,7 +53,7 @@ def logout():
 @app.route('/trainstation')
 @login_required
 def trainstation():
-    stations = Station.query.all()
+    stations = db.session.query(Station, Address).join(Address, Station.address_id == Address.id).all()
     return render_template('trainstation.html', title='Trainstation',stations = stations)
 
 @app.route('/trainsstationNew', methods=['GET', 'POST'])
@@ -59,7 +61,11 @@ def trainstation():
 def trainstationNew():
     form = TrainstationForm()
     if form.validate_on_submit():
-        trainstation = Station(name=form.name.data, street=form.street.data, no=form.no.data, zipcode=form.zipcode.data,city=form.city.data, country=form.country.data)
+        address = Address(street=form.street.data, no=form.no.data, zipcode=form.zipcode.data, city=form.city.data,
+                          country=form.country.data)
+        db.session.add(address)
+        db.session.commit()
+        trainstation = Station(name=form.name.data, address_id=address.id)
         db.session.add(trainstation)
         db.session.commit()
         flash('Bahnhof angelegt!')
@@ -70,27 +76,38 @@ def trainstationNew():
 @app.route('/trainsstationEdit/<station_id>', methods=['GET', 'POST'])
 @login_required
 def trainstationEdit(station_id):
-    station = Station.query.get_or_404(station_id)
-    form = TrainstationForm(obj=station)
+    station = Station.query.get(station_id)
+    address = Address.query.get(station.address_id)
+    form = TrainstationForm()
     if form.validate_on_submit():
+        address.street = form.street.data
+        address.no = form.no.data
+        address.zipcode = form.zipcode.data
+        address.city = form.city.data
+        address.country = form.country.data
         station.name = form.name.data
-        station.street = form.street.data
-        station.no = form.no.data
-        station.zipcode = form.zipcode.data
-        station.city = form.city.data
-        station.country = form.country.data
-        db.session.add(station)
-        db.session.commit()
+        db.session.merge(station)
+        print(address.city)
+        print(form.city.data)
+        db.session.commit()  # Commit the changes
         flash('Änderungen gespeichert!')
         return redirect(url_for('trainstation'))
+    form = TrainstationForm(obj=station)
+    form.street.data = address.street
+    form.no.data = address.no
+    form.zipcode.data = address.zipcode
+    form.city.data = address.city
+    form.country.data = address.country
     return render_template('trainstationNew.html', title='Edit Trainstation', form=form)
 
 @app.route('/trainsstationDelete/<station_id>', methods=['GET', 'POST'])
 @login_required
 def trainstationDelete(station_id):
     deletestation = Station.query.get_or_404(station_id)
+    deleteaddress = Address.query.get(deletestation.address_id)
     # if request.method == 'POST':
     db.session.delete(deletestation)
+    db.session.delete(deleteaddress)
     db.session.commit()
     return redirect(url_for('trainstation'))
 
@@ -112,3 +129,61 @@ def all_stations():
         stations_list.append(station_dict)
 
     return jsonify(stations_list)
+
+
+@app.route('/user')
+@login_required
+def user():
+    users = User.query.all()
+    return render_template('user.html', title='User', users=users)
+
+@app.route('/userNew', methods=['GET', 'POST'])
+@login_required
+def userNew():
+    form = UserForm()
+    if form.validate_on_submit():
+        address = Address(street=form.street.data, no=form.no.data, zipcode=form.zipcode.data, city=form.city.data,
+                          country=form.country.data)
+        db.session.add(address)
+        db.session.commit()
+        user = User(username=form.username.data, email=form.email.data, isAdmin=form.is_admin.data, address_id=address.id)
+        user.set_password(form.password.data)
+        db.session.add(user)
+        db.session.commit()
+        flash('User created!')
+        return redirect(url_for('user'))
+    return render_template('userNew.html', title='New User', form=form)
+
+@app.route('/userEdit/<user_id>', methods=['GET', 'POST'])
+@login_required
+def userEdit(user_id):
+    user = User.query.get(user_id)
+    address = Address.query.get(user.address_id)
+    form = UserForm(obj=user)
+    if form.validate_on_submit():
+        user.username = form.username.data
+        user.email = form.email.data
+        user.isAdmin = form.is_admin.data
+        address.street = form.street.data
+        address.no = form.no.data
+        address.zipcode = form.zipcode.data
+        address.city = form.city.data
+        address.country = form.country.data
+        if form.password.data:
+            user.set_password(form.password.data)
+        db.session.commit()
+        flash('Changes saved!')
+        return redirect(url_for('user'))
+    form.street.data = address.street
+    form.no.data = address.no
+    form.zipcode.data = address.zipcode
+    form.city.data = address.city
+    form.country.data = address.country
+    return render_template('userEdit.html', title='Edit User', form=form)
+@app.route('/userDelete/<user_id>', methods=['GET', 'POST'])
+@login_required
+def userDelete(user_id):
+    user = User.query.get_or_404(user_id)
+    db.session.delete(user)
+    db.session.commit()
+    return redirect(url_for('user'))

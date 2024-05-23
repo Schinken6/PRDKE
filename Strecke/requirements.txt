@@ -18,7 +18,9 @@ dbus-python==1.2.18
 defer==1.0.6
 distro==1.7.0
 distro-info==1.1+ubuntu0.1
+dnspython==2.6.1
 duplicity==0.8.21
+email_validator==2.1.1
 fasteners==0.14.1
 Flask==3.0.3
 Flask-Login==0.6.3

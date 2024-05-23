@@ -17,7 +17,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for station in stations %}
+            {% for station, address in stations %}
                 <tr>
                     <td >
                             ({{ station.id }})
@@ -25,8 +25,8 @@
 
                     </td>
                     <td>{{ station.name }}</td>
-                    <td>{{ station.street }} {{ station.no }}, {{ station.city }}</td>
-                    <td>{{ station.zipcode }}</td>
+                    <td>{{ address.street }} {{ address.no }}, {{ address.city }}</td>
+                    <td>{{ address.zipcode }}</td>
                       {% if current_user.is_authenticated and current_user.isAdmin %}
                     <td>
             <form action="{{ url_for('trainstationDelete', station_id=station.id) }}" method="post">

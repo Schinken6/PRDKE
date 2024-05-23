@@ -27,7 +27,7 @@ class User(UserMixin, db.Model):
     isAdmin = db.Column(db.Boolean, default=False)
 
     address_id = db.Column(db.Integer, db.ForeignKey('address.id', name='fk_user_address_id'))
-    address = db.relationship("Address")
+    address = db.relationship('Address', backref='user', uselist=False)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -61,7 +61,7 @@ class Segment(db.Model):
     length = db.Column(db.Double)
     maxSpeed = db.Column(db.Integer)
     price = db.Column(db.Double)
-    warnings = db.relationship("Warning", back_populates="segment")
+    warnings = db.relationship("Warning")
 
 
 class Warning(db.Model):
@@ -86,5 +86,5 @@ class Route(db.Model):
     name = db.Column(db.String(140))
     startStation = db.Column(db.Integer, db.ForeignKey('station.id', name='fk_route_station_start'))
     endStation = db.Column(db.Integer, db.ForeignKey('station.id', name='fk_route_station_start'))
-    sections = db.relationship('Section', secondary=routesegments, backref="route")
+    sections = db.relationship('Segment', secondary=routesegments, backref="route")
     trackWidth = db.Column(db.Integer)
