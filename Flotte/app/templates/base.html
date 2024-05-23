@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Flotten-Informationssystem</title>
     <style>
+        /* general styles */
         body, html {
             margin: 0;
             padding: 0;
@@ -66,64 +68,32 @@
             position: relative; /* Allows absolute positioning inside */
         }
 
-        .user-info {
-            font-weight: bold;
-            position: absolute; /* Position it absolutely to control its placement directly */
-            left: 20px; /* Align 'root' to the left */
-            top: 10px; /* Align 'root' to vertically center, adjust as needed */
-        }
+
 
         h1 {
             margin: 0; /* Remove margin to help with centering */
         }
 
-        .tab {
-            display: flex;
-            justify-content: space-around; /* This will add space between the buttons */
-            align-items: center; /* Vertically center the buttons in the tab */
-            padding: 5px; /* Padding around the buttons */
-        }
 
-        a {
+        .tab a {
+            flex: 1;
+            background-color: #838383;
+            color: black;
+            padding: 10px 16px;
+            transition: 0.3s;
+            font: bold 20px Arial, sans-serif;
+            text-align: center;
+            border-radius: 20px;
+            margin: 0 10px;
             text-decoration: none;
         }
 
-
-        .tab a {
-            flex: 1; /* Make each button take equal space */
-            background-color: #757575; /* Initial button background color */
-            color: black;
-            border: none;
-            outline: none;
-            cursor: pointer;
-            padding: 10px 16px;
-            transition: 0.3s;
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            border-radius: 20px;
-            margin: 4px; /* Controls spacing between buttons */
-            margin-left: 50px;
-            margin-right: 50px;
-        }
-
         .tab a:hover {
-            background-color: lightgray; /* Lighter grey for hover */
+            background-color: #D8D8D8; /* Lighter grey for hover */
         }
 
         .tab a.active {
-            background-color: lightgray; /* Darker grey for active state no current state implemented */
-        }
-
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        .header h1 {
-            text-align: center;
+            background-color: blue; /* Darker grey for active state no current state implemented */
         }
 
         .tab {
@@ -132,25 +102,22 @@
             margin-bottom: 20px;
         }
 
-        .tab a {
-            margin: 0 10px;
-            text-decoration: none;
-            color: black;
-            font-weight: bold;
-        }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin: auto;
             text-align: center;
-
+            font-family: Arial, sans-serif;
         }
 
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: center;
+        th {
+            background-color: #D9D9D9;
+            font-size: 18px;
+        }
+
+        td {
+            background-color: #F4F4F4;
+            font-size: 16px;
         }
 
         input[type="text"] {
@@ -158,51 +125,25 @@
             text-align: center;
         }
 
-        button {
-            width: 100%;
-            padding: 5px;
-            background-color: #f8f8f8;
-            border: 1px solid #ccc;
+        .input-fields {
+            background-color: transparent;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+
+
+            text-align: center;
+            border: none;
+            width: 80px;
+        }
+
+        .icon {
+            border: none;
+            background: none;
             cursor: pointer;
         }
 
-        button:hover {
-            background-color: #e8e8e8;
-        }
 
 
-
-
-
-
-
-
-    /* does nothing */
-    .tabcontent {
-        display: none;
-        padding: 6px 12px;
-        border: 1px solid #ccc;
-        border-top: none;
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        .email {
-            font-weight: bold;
-            padding-right: 20px;
-        }
     </style>
 </head>
 <body>

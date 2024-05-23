@@ -49,7 +49,7 @@ class Railcar(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id), index=True)
 
     owner: so.Mapped[User] = so.relationship(back_populates='railcars')
-    track_width: so.Mapped[float] = so.mapped_column(sa.Float(10))
+    track_width: so.Mapped[int] = so.mapped_column(sa.Integer)
     max_tensile_force: so.Mapped[float] = so.mapped_column(sa.Float(10))
 #new for API
     def serialize(self):
