@@ -25,20 +25,24 @@
 
         .sidebar {
             background-color: rgb(195, 105, 101);
-            color: white;
             width: 200px;
             padding: 20px;
             display: flex;
             flex-direction: column;
             box-sizing: border-box; /* Includes padding in the width */
+
         }
 
         .sidebar a {
             text-decoration: none;
-            color: white;
             padding: 10px;
             margin: 5px 0;
             display: block;
+            color: black;
+        }
+
+        .sidebar .logout {
+            margin-top: auto;
         }
 
         .content {
@@ -49,12 +53,8 @@
         }
 
         .topbar {
-            background-color: rgb(195, 105, 101);
-            color: white;
+            background-color: #C36965;
             padding: 10px 20px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
             width: calc(100% + 40px);
             margin: 0 -20px 0 -20px; /* Corrects for the padding introduced by content and sidebar */
             box-sizing: border-box;
@@ -93,7 +93,7 @@
         }
 
         .tab a.active {
-            background-color: blue; /* Darker grey for active state no current state implemented */
+            background-color: yellow; /* Darker grey for active state no current state implemented */
         }
 
         .tab {
@@ -146,6 +146,11 @@
             cursor: pointer;
             text-align: center;
             display: inline;
+            margin: 0 5px; /* This adds a 10px space to the left and right of each icon */
+        }
+
+        .icon-flip {
+            transform: scaleX(-1);
         }
 
 
@@ -162,12 +167,17 @@
             <a href="{{ url_for('user', username=current_user.username) }}">Wagen verwalten</a>
             <a href="{{ url_for('train') }}">Wagen erstellen</a>
             <a href="{{ url_for('edit_profile') }}">Profil bearbeiten</a>
-            <a href="{{ url_for('logout') }}">Abmelden</a>
+            <a href="{{ url_for('logout') }}" class="logout">
+                <i class="fa-solid fa-arrow-right-from-bracket icon-flip"></i> Abmelden
+            </a>
+
+
             {% endif %}
         </div>
         <div class="content">
             <div class="topbar">
-                <span class="email">{{ current_user.email if not current_user.is_anonymous else 'Guest' }}</span>
+                <i class="fa-solid fa-circle-user"></i>
+                <span>{{ current_user.username if not current_user.is_anonymous else 'Guest' }}</span>
             </div>
             {% with messages = get_flashed_messages() %}
             {% if messages %}
