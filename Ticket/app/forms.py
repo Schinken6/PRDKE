@@ -4,7 +4,7 @@ from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
 import sqlalchemy as sa
 from app import db
 from app.models import User
-from wtforms import TextAreaField
+from wtforms import TextAreaField, DecimalField, SelectField
 from wtforms.validators import Length
 
 class LoginForm(FlaskForm):
@@ -14,6 +14,11 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Einloggen')
 
 class RegistrationForm(FlaskForm):
+    firstname = StringField('Vorname', validators=[DataRequired()])
+    lastname = StringField('Nachname', validators=[DataRequired()])
+    zip = StringField('Postleitzahl', validators=[DataRequired()])
+    city = StringField('Stadt', validators=[DataRequired()])
+    street = StringField('Straße/Nr', validators=[DataRequired()])
     username = StringField('Username', validators=[DataRequired()])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -59,3 +64,13 @@ class BuyTicketForm(FlaskForm):
     end_station = StringField('End Haltestelle', validators=[DataRequired()])
     status = StringField('Status', validators=[DataRequired()])
     submit = SubmitField('Kaufen')
+
+class NewPromotionForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    discount = DecimalField('Rabatt (%)', validators=[DataRequired()])
+    start_date = DateField('Startdatum', validators=[DataRequired()], format='%Y-%m-%d')
+    end_date = DateField('Enddatum', validators=[DataRequired()], format='%Y-%m-%d')
+    route = SelectField('Strecke (optional)', validators=[],
+                        choices=[('',''), ('LINZ-WELS', 'LINZ-WELS'), ('WIEN-GRAZ', 'WIEN-GRAZ')])
+    global_promotion = BooleanField('globale Aktion')
+    submit = SubmitField('Speichern')

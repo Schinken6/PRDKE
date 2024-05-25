@@ -1,3 +1,0 @@
-This is the ReadME for the PRDKE Project 
-The independant Services are all have there own Seperate documentation README.md files.
-...WIP...
