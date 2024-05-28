@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Segments Overview</h1>
+
+    <table class="table-station" >
+        <thead>
+            <tr>
+                <th>Start Station</th>
+                <th>End Station</th>
+                <th>Track Width</th>
+                <th>Length</th>
+                <th>Max Speed</th>
+                <th>Price</th>
+                {% if current_user.is_authenticated and current_user.isAdmin %}
+                <th></th>
+                <th></th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for segment in segments %}
+                <tr>
+                    <td>{{ segment.startStation }}</td>
+                    <td>{{ segment.endStation }}</td>
+                    <td>{{ segment.trackWidth }}</td>
+                    <td>{{ segment.length }}</td>
+                    <td>{{ segment.maxSpeed }}</td>
+                    <td>{{ segment.price }}</td>
+                    {% if current_user.is_authenticated and current_user.isAdmin %}
+                    <td>
+                        <form action="{{ url_for('segmentDelete', segment_id=segment.id) }}" method="post">
+                            <input type="submit" value="Delete" class="edit-button">
+                        </form>
+                    </td>
+                    <td>
+                        <form action="{{ url_for('segmentEdit', segment_id=segment.id) }}" method="post">
+                            <input type="submit" value="Edit" class="edit-button">
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if current_user.is_authenticated and current_user.isAdmin %}
+    <a class="create_button" href="{{ url_for('segmentNew') }}">New</a>
+    {% endif %}
+{% endblock %}

@@ -9,8 +9,9 @@
                    <th>ID</th>
                 <th>Name</th>
                 <th>Adresse</th>
-                  {% if current_user.is_authenticated and current_user.isAdmin %}
                 <th>zipcode</th>
+                  {% if current_user.is_authenticated and current_user.isAdmin %}
+
                 <th></th>
                 <th></th>
                 {% endif %}
@@ -21,8 +22,6 @@
                 <tr>
                     <td >
                             ({{ station.id }})
-
-
                     </td>
                     <td>{{ station.name }}</td>
                     <td>{{ address.street }} {{ address.no }}, {{ address.city }}</td>
@@ -43,7 +42,7 @@
             {% endfor %}
         </tbody>
     </table>
-
+{% if current_user.is_authenticated and current_user.isAdmin %}
     <a class="create_button" href="{{ url_for('trainstationNew') }}">Neu</a>
-
+{% endif %}
 {% endblock %}

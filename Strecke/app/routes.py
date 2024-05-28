@@ -1,10 +1,10 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
-from app.forms import LoginForm, TrainstationForm, UserForm
+from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.models import User
+from app.models import User, Segment
 from urllib.parse import urlsplit
 from app.models import Station, Address
 
@@ -187,3 +187,46 @@ def userDelete(user_id):
     db.session.delete(user)
     db.session.commit()
     return redirect(url_for('user'))
+
+@app.route('/segment/new', methods=['GET', 'POST'])
+@login_required
+def segmentNew():
+    form = SegmentForm()
+    if form.validate_on_submit():
+        segment = Segment(startStation=form.startStation.data, endStation=form.endStation.data, trackWidth=form.trackWidth.data, length=form.length.data, maxSpeed=form.maxSpeed.data, price=form.price.data)
+        db.session.add(segment)
+        db.session.commit()
+        flash('New segment has been created!', 'success')
+        return redirect(url_for('segments'))
+    return render_template('segmentNew.html', title='New Segment', form=form)
+@app.route('/segment/<int:segment_id>/edit', methods=['GET', 'POST'])
+@login_required
+def segmentEdit(segment_id):
+    segment = Segment.query.get_or_404(segment_id)
+    form = SegmentForm()
+    if form.validate_on_submit():
+        segment.startStation = form.startStation.data
+        segment.endStation = form.endStation.data
+        db.session.commit()
+        flash('Segment has been updated!', 'success')
+        return redirect(url_for('segments'))
+    elif request.method == 'GET':
+        form.startStation.data = segment.startStation
+        form.endStation.data = segment.endStation
+    return render_template('edit_segment.html', title='Edit Segment', form=form)
+
+@app.route('/segment/<int:segment_id>/delete', methods=['POST'])
+@login_required
+
+def segmentDelete(segment_id):
+    segment = Segment.query.get_or_404(segment_id)
+    db.session.delete(segment)
+    db.session.commit()
+    flash('Segment has been deleted!', 'success')
+    return redirect(url_for('segments'))
+
+@app.route('/segments')
+@login_required
+def segments():
+    segments = Segment.query.all()
+    return render_template('segment.html', title='Segments', segments=segments)
