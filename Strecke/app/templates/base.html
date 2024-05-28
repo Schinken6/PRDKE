@@ -178,7 +178,8 @@
             <a href="{{ url_for('login') }}">Login</a>
             {% else %}
             <a href="{{ url_for('trainstation') }}">Bahnhofübersicht</a>
-                <a href="{{ url_for('segments') }}">Abschnittübersicht</a>
+            <a href="{{ url_for('segments') }}">Abschnittübersicht</a>
+            <a href="{{ url_for('warnings') }}">Warnungen</a>
                  {% if current_user.is_authenticated and current_user.isAdmin %}
                 <a href="{{ url_for('user') }}">User Übersicht</a>
                 {% endif %}

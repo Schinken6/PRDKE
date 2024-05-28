@@ -19,17 +19,17 @@
             </tr>
         </thead>
         <tbody>
-            {% for segment in segments %}
+            {% for segment, start_station_name, end_station_name in segments %}
                 <tr>
-                    <td>{{ segment.startStation }}</td>
-                    <td>{{ segment.endStation }}</td>
+                     <td> {{ start_station_name }}</td>
+                     <td> {{ end_station_name }}</td>
                     <td>{{ segment.trackWidth }}</td>
                     <td>{{ segment.length }}</td>
                     <td>{{ segment.maxSpeed }}</td>
                     <td>{{ segment.price }}</td>
                     {% if current_user.is_authenticated and current_user.isAdmin %}
                     <td>
-                        <form action="{{ url_for('segmentDelete', segment_id=segment.id) }}" method="post">
+                       <form action="{{ url_for('segmentDelete', segment_id=segment.id) }}" method="post">
                             <input type="submit" value="Delete" class="edit-button">
                         </form>
                     </td>

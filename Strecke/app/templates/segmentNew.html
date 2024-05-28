@@ -4,14 +4,15 @@
     <h1>Create New Segment</h1>
     <form method="POST">
         {{ form.hidden_tag() }}
-        <p>
-            {{ form.startStation.label }}<br>
-            {{ form.startStation() }}
-        </p>
-        <p>
-            {{ form.endStation.label }}<br>
-            {{ form.endStation() }}
-        </p>
+
+
+        <div class="form-group">
+            {{ form.startStation.label }} {{ form.startStation(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.endStation.label }} {{ form.endStation(class="form-control") }}
+        </div>
         <p>
             {{ form.trackWidth.label }}<br>
             {{ form.trackWidth() }}

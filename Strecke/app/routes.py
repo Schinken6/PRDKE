@@ -4,10 +4,11 @@ from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.models import User, Segment
+from app.models import User, Segment, Warning
 from urllib.parse import urlsplit
 from app.models import Station, Address
-
+from sqlalchemy.orm import aliased
+from datetime import datetime
 
 
 @app.route('/')
@@ -25,7 +26,8 @@ def index():
             'body': 'The Avengers movie was so cool!'
         }
     ]
-    return render_template('index.html', title='Home',  posts=posts)
+    return render_template('index.html', title='Home', posts=posts)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -45,16 +47,19 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
 
+
 @app.route('/trainstation')
 @login_required
 def trainstation():
     stations = db.session.query(Station, Address).join(Address, Station.address_id == Address.id).all()
-    return render_template('trainstation.html', title='Trainstation',stations = stations)
+    return render_template('trainstation.html', title='Trainstation', stations=stations)
+
 
 @app.route('/trainsstationNew', methods=['GET', 'POST'])
 @login_required
@@ -71,7 +76,8 @@ def trainstationNew():
         flash('Bahnhof angelegt!')
         return redirect(url_for('trainstation'))
 
-    return render_template('trainstationNew.html', title='New Trainstation', form = form)
+    return render_template('trainstationNew.html', title='New Trainstation', form=form)
+
 
 @app.route('/trainsstationEdit/<station_id>', methods=['GET', 'POST'])
 @login_required
@@ -100,6 +106,7 @@ def trainstationEdit(station_id):
     form.country.data = address.country
     return render_template('trainstationNew.html', title='Edit Trainstation', form=form)
 
+
 @app.route('/trainsstationDelete/<station_id>', methods=['GET', 'POST'])
 @login_required
 def trainstationDelete(station_id):
@@ -110,6 +117,7 @@ def trainstationDelete(station_id):
     db.session.delete(deleteaddress)
     db.session.commit()
     return redirect(url_for('trainstation'))
+
 
 @app.route('/Bahnhof/all')
 def all_stations():
@@ -137,6 +145,7 @@ def user():
     users = User.query.all()
     return render_template('user.html', title='User', users=users)
 
+
 @app.route('/userNew', methods=['GET', 'POST'])
 @login_required
 def userNew():
@@ -146,13 +155,15 @@ def userNew():
                           country=form.country.data)
         db.session.add(address)
         db.session.commit()
-        user = User(username=form.username.data, email=form.email.data, isAdmin=form.is_admin.data, address_id=address.id)
+        user = User(username=form.username.data, email=form.email.data, isAdmin=form.is_admin.data,
+                    address_id=address.id)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
         flash('User created!')
         return redirect(url_for('user'))
     return render_template('userNew.html', title='New User', form=form)
+
 
 @app.route('/userEdit/<user_id>', methods=['GET', 'POST'])
 @login_required
@@ -180,6 +191,8 @@ def userEdit(user_id):
     form.city.data = address.city
     form.country.data = address.country
     return render_template('userEdit.html', title='Edit User', form=form)
+
+
 @app.route('/userDelete/<user_id>', methods=['GET', 'POST'])
 @login_required
 def userDelete(user_id):
@@ -188,36 +201,48 @@ def userDelete(user_id):
     db.session.commit()
     return redirect(url_for('user'))
 
+
 @app.route('/segment/new', methods=['GET', 'POST'])
 @login_required
 def segmentNew():
     form = SegmentForm()
+    stations = Station.query.all()
     if form.validate_on_submit():
-        segment = Segment(startStation=form.startStation.data, endStation=form.endStation.data, trackWidth=form.trackWidth.data, length=form.length.data, maxSpeed=form.maxSpeed.data, price=form.price.data)
+        segment = Segment(startStation=form.startStation.data, endStation=form.endStation.data,
+                          trackWidth=form.trackWidth.data, length=form.length.data, maxSpeed=form.maxSpeed.data,
+                          price=form.price.data)
         db.session.add(segment)
         db.session.commit()
         flash('New segment has been created!', 'success')
         return redirect(url_for('segments'))
-    return render_template('segmentNew.html', title='New Segment', form=form)
-@app.route('/segment/<int:segment_id>/edit', methods=['GET', 'POST'])
+    else:
+        print(form.errors)  # Print form errors
+    return render_template('segmentNew.html', title='New Segment', form=form, stations=stations)
+
+
+@app.route('/segmentEdit/<int:segment_id>', methods=['GET', 'POST'])
 @login_required
 def segmentEdit(segment_id):
-    segment = Segment.query.get_or_404(segment_id)
-    form = SegmentForm()
+    segment = Segment.query.get(segment_id)
+    stations = Station.query.all()
+    if segment is None:
+        flash('Segment not found.')
+        return redirect(url_for('segments'))
+    form = SegmentForm(obj=segment)
+    form.startStation.choices = [(s.id, s.name) for s in stations]
+    form.endStation.choices = [(s.id, s.name) for s in stations]
     if form.validate_on_submit():
-        segment.startStation = form.startStation.data
-        segment.endStation = form.endStation.data
+        form.populate_obj(segment)
         db.session.commit()
         flash('Segment has been updated!', 'success')
         return redirect(url_for('segments'))
-    elif request.method == 'GET':
-        form.startStation.data = segment.startStation
-        form.endStation.data = segment.endStation
-    return render_template('edit_segment.html', title='Edit Segment', form=form)
+    form.startStation.data = segment.startStation
+    form.endStation.data = segment.endStation
+    return render_template('segmentNew.html', title='Edit Segment', form=form, stations=stations)
+
 
 @app.route('/segment/<int:segment_id>/delete', methods=['POST'])
 @login_required
-
 def segmentDelete(segment_id):
     segment = Segment.query.get_or_404(segment_id)
     db.session.delete(segment)
@@ -225,8 +250,30 @@ def segmentDelete(segment_id):
     flash('Segment has been deleted!', 'success')
     return redirect(url_for('segments'))
 
+
 @app.route('/segments')
 @login_required
 def segments():
-    segments = Segment.query.all()
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    segments = db.session.query(
+        Segment,
+        StartStation.name.label('start_station_name'),
+        EndStation.name.label('end_station_name')
+    ).join(
+        StartStation, Segment.startStation == StartStation.id
+    ).join(
+        EndStation, Segment.endStation == EndStation.id
+    ).all()
+
     return render_template('segment.html', title='Segments', segments=segments)
+
+
+
+
+@app.route('/warnings', methods=['GET'])
+@login_required
+def warnings():
+    warnings = Warning.query.all()
+    return render_template('warnings.html', title='Warnings Overview', warnings=warnings)
