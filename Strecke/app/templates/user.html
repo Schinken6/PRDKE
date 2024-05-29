@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Users</h1>
+    <table class="table-station">
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Address</th>
+            <th>Admin</th>
+            <th>Actions</th>
+        </tr>
+        {% for user in users %}
+            <tr>
+                <td>{{ user.username }}</td>
+                <td>{{ user.email }}</td>
+                <td>{{ user.address.street }}, {{ user.address.no }}, {{ user.address.zipcode }}, {{ user.address.city }}, {{ user.address.country }}</td>
+                <td>{{ user.isAdmin }}</td>
+                <td>
+                    <a class="edit-button" href="{{ url_for('userEdit', user_id=user.id) }}">Edit</a>
+                    <a class="edit-button" href="{{ url_for('userDelete', user_id=user.id) }}">Delete</a>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+    <a class="edit-button" href="{{ url_for('userNew') }}">New User</a>
+{% endblock %}

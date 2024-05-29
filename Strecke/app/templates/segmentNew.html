@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Create New Segment</h1>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+
+        <div class="form-group">
+            {{ form.startStation.label }} {{ form.startStation(class="form-control") }}
+        </div>
+
+        <div class="form-group">
+            {{ form.endStation.label }} {{ form.endStation(class="form-control") }}
+        </div>
+        <p>
+            {{ form.trackWidth.label }}<br>
+            {{ form.trackWidth() }}
+        </p>
+        <p>
+            {{ form.length.label }}<br>
+            {{ form.length() }}
+        </p>
+        <p>
+            {{ form.maxSpeed.label }}<br>
+            {{ form.maxSpeed() }}
+        </p>
+        <p>
+            {{ form.price.label }}<br>
+            {{ form.price() }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
