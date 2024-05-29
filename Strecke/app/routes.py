@@ -523,7 +523,7 @@ def get_warnings():
         warning_data = {
             'name': warning.name,
             'beschreibung': warning.description,
-            'abschnitssId': warning.segmentId,
+            'abschnitssId': warning.segment,
             'startzeitpunkt': warning.validFrom,
             'endzeitpunkt': warning.validTo
         }
