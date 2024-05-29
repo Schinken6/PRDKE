@@ -4,7 +4,7 @@ from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
-from app.models import User, Segment, Warning
+from app.models import User, Segment, Warning, Route
 from urllib.parse import urlsplit
 from app.models import Station, Address
 from sqlalchemy.orm import aliased
@@ -277,3 +277,196 @@ def segments():
 def warnings():
     warnings = Warning.query.all()
     return render_template('warnings.html', title='Warnings Overview', warnings=warnings)
+
+
+@app.route('/Strecke/<int:route_id>', methods=['GET'])
+def get_route(route_id):
+    route = Route.query.get(route_id)
+    if route is None:
+        return jsonify({'error': 'Route not found'}), 404
+
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    # Get the start and end stations
+    start_station = StartStation.query.get(route.startStation)
+    end_station = EndStation.query.get(route.endStation)
+
+    # Get the segments of the route
+    segments = Segment.query.filter(Segment.route.any(id=route.id)).all()
+
+    segments_list = []
+    for segment in segments:
+        start_station_segment = StartStation.query.get(segment.startStation)
+        end_station_segment = EndStation.query.get(segment.endStation)
+        segment_data = {
+            'id': segment.id,
+            'start': start_station_segment.name if start_station_segment else None,
+            'end': end_station_segment.name if end_station_segment else None,
+            'laenge': segment.length,
+            'maxGeschwindigkeit': segment.maxSpeed,
+            'nutzungsentgeld': segment.price
+        }
+        segments_list.append(segment_data)
+
+    route_data = {
+        'id': route.id,
+        'name': route.name,
+        'startbahnhof': start_station.name if start_station else None,
+        'endbahnhof': end_station.name if end_station else None,
+        'spurbreite': route.trackWidth,
+        'abschnitte': segments_list
+    }
+
+    return jsonify(route_data)
+
+
+@app.route('/Strecken', methods=['GET'])
+def get_routes():
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    routes = Route.query.all()
+    routes_list = []
+
+    for route in routes:
+        # Get the start and end stations
+        start_station = StartStation.query.get(route.startStation)
+        end_station = EndStation.query.get(route.endStation)
+
+        # Get the segments of the route
+        segments = Segment.query.filter(Segment.route.any(id=route.id)).all()
+
+        segments_list = []
+        for segment in segments:
+            start_station_segment = StartStation.query.get(segment.startStation)
+            end_station_segment = EndStation.query.get(segment.endStation)
+            segment_data = {
+                'id': segment.id,
+                'start': start_station_segment.name if start_station_segment else None,
+                'end': end_station_segment.name if end_station_segment else None,
+                'laenge': segment.length,
+                'maxGeschwindigkeit': segment.maxSpeed,
+                'nutzungsentgeld': segment.price
+            }
+            segments_list.append(segment_data)
+
+        route_data = {
+            'id': route.id,
+            'name': route.name,
+            'startbahnhof': start_station.name if start_station else None,
+            'endbahnhof': end_station.name if end_station else None,
+            'spurbreite': route.trackWidth,
+            'abschnitte': segments_list
+        }
+
+        routes_list.append(route_data)
+
+    return jsonify(routes_list)
+
+
+@app.route('/Strecke/<start_station>/<end_station>', methods=['GET'])
+def get_route_by_station(start_station, end_station):
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    # Get the start and end stations
+    start_station = StartStation.query.filter_by(name=start_station).first()
+    end_station = EndStation.query.filter_by(name=end_station).first()
+
+    if start_station is None or end_station is None:
+        return jsonify({'error': 'Start or end station not found'}), 404
+
+    # Get the route
+    route = Route.query.filter_by(startStation=start_station.id, endStation=end_station.id).first()
+
+    if route is None:
+        return jsonify({'error': 'Route not found'}), 404
+
+    # Get the segments of the route
+    segments = Segment.query.filter(Segment.route.any(id=route.id)).all()
+
+    segments_list = []
+    for segment in segments:
+        start_station_segment = StartStation.query.get(segment.startStation)
+        end_station_segment = EndStation.query.get(segment.endStation)
+        segment_data = {
+            'id': segment.id,
+            'start': start_station_segment.name if start_station_segment else None,
+            'end': end_station_segment.name if end_station_segment else None,
+            'laenge': segment.length,
+            'maxGeschwindigkeit': segment.maxSpeed,
+            'nutzungsentgeld': segment.price
+        }
+        segments_list.append(segment_data)
+
+    route_data = {
+        'id': route.id,
+        'name': route.name,
+        'startbahnhof': start_station.name if start_station else None,
+        'endbahnhof': end_station.name if end_station else None,
+        'spurbreite': route.trackWidth,
+        'abschnitte': segments_list
+    }
+
+    return jsonify(route_data)
+
+@app.route('/Strecke/lite', methods=['GET'])
+def get_lite_routes():
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    routes = Route.query.all()
+    routes_list = []
+
+    for route in routes:
+        # Get the start and end stations
+        start_station = StartStation.query.get(route.startStation)
+        end_station = EndStation.query.get(route.endStation)
+
+        route_data = {
+            'id': route.id,
+            'name': route.name,
+            'startbahnhof': start_station.name if start_station else None,
+            'endbahnhof': end_station.name if end_station else None,
+            'spurbreite': route.trackWidth,
+        }
+
+        routes_list.append(route_data)
+
+    return jsonify(routes_list)
+
+
+@app.route('/Abschnitt/<start_station>/<end_station>', methods=['GET'])
+def get_segment(start_station, end_station):
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    # Get the start and end stations
+    start_station = StartStation.query.filter_by(name=start_station).first()
+    end_station = EndStation.query.filter_by(name=end_station).first()
+
+    if start_station is None or end_station is None:
+        return jsonify({'error': 'Start or end station not found'}), 404
+
+    # Get the segment
+    segment = Segment.query.filter_by(startStation=start_station.id, endStation=end_station.id).first()
+
+    if segment is None:
+        return jsonify({'error': 'Segment not found'}), 404
+
+    segment_data = {
+        'id': segment.id,
+        'start': start_station.name if start_station else None,
+        'end': end_station.name if end_station else None,
+        'laenge': segment.length,
+        'maxGeschwindigkeit': segment.maxSpeed,
+        'nutzungsentgeld': segment.price
+    }
+
+    return jsonify(segment_data)
