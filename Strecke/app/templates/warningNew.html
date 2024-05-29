@@ -1,10 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block content %}
+    <h1>Create New Warning</h1>
+    <form method="POST" action="{{ url_for('warningNew') }}">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(size=30) }}
+        </p>
+        <p>
+            {{ form.description.label }}<br>
+            {{ form.description(size=30) }}
+        </p>
+        <p>
+            {{ form.validFrom.label }}<br>
+            <input type="text" id="validFrom" name="validFrom" required>
+        </p>
+        <p>
+            {{ form.validTo.label }}<br>
+            <input type="text" id="validTo" name="validTo" required>
+        </p>
+        <p>
+            {{ form.segment.label }}<br>
+            {{ form.segment() }}
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+    <script>
+        $( function() {
+            $( "#validFrom" ).datepicker({ dateFormat: 'yy-mm-dd' });
+            $( "#validTo" ).datepicker({ dateFormat: 'yy-mm-dd' });
+        } );
+    </script>
+{% endblock %}

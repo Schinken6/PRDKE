@@ -1,5 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField, IntegerField, TextAreaField, \
+    DateTimeField, DateField
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from .models import Station
 
@@ -51,3 +52,15 @@ class SegmentForm(FlaskForm):
     def validate_endStation(self, endStation):
         if self.startStation.data == endStation.data:
             raise ValidationError('Start station cannot be the same as the end station.')
+
+
+
+
+
+class WarningForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    description = StringField('Description', validators=[DataRequired()])
+    validFrom = DateField('Valid From', format='%Y-%m-%d', validators=[DataRequired()])
+    validTo = DateField('Valid To', format='%Y-%m-%d', validators=[DataRequired()])
+    segment = SelectField('Segment', coerce=int)
+    submit = SubmitField('Create')

@@ -1,14 +1,15 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
-from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm
+from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm, WarningForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
 from app.models import User, Segment, Warning, Route
 from urllib.parse import urlsplit
-from app.models import Station, Address
+from app.models import Station, Address, routesegments
 from sqlalchemy.orm import aliased
 from datetime import datetime
+
 
 
 @app.route('/')
@@ -279,6 +280,43 @@ def warnings():
     return render_template('warnings.html', title='Warnings Overview', warnings=warnings)
 
 
+
+
+
+
+
+@app.route('/warningNew', methods=['GET', 'POST'])
+@login_required
+def warningNew():
+    form = WarningForm()
+    segments = Segment.query.order_by('startStation').all()
+    form.segment.choices = [(s.id, f'{Station.query.get(s.startStation).name} - {Station.query.get(s.endStation).name}') for s in segments]
+    if form.validate_on_submit():
+        validFrom = datetime.strptime(request.form['validFrom'], '%Y-%m-%d').date()
+        validTo = datetime.strptime(request.form['validTo'], '%Y-%m-%d').date()
+        warning = Warning(name=form.name.data, description=form.description.data, validFrom=validFrom,
+                          validTo=validTo, segment=form.segment.data)
+        db.session.add(warning)
+        db.session.commit()
+        flash('New warning has been created!', 'success')
+        return redirect(url_for('warnings'))
+    else:
+        print(form.errors)  # Print form errors
+    return render_template('warningNew.html', form=form)
+
+
+@app.route('/warningDelete/<int:warning_id>', methods=['POST'])
+@login_required
+def warningDelete(warning_id):
+    warning = Warning.query.get_or_404(warning_id)
+    db.session.delete(warning)
+    db.session.commit()
+    flash('Warning has been deleted!', 'success')
+    return redirect(url_for('warnings'))
+
+
+#############################API#############################
+
 @app.route('/Strecke/<int:route_id>', methods=['GET'])
 def get_route(route_id):
     route = Route.query.get(route_id)
@@ -470,3 +508,119 @@ def get_segment(start_station, end_station):
     }
 
     return jsonify(segment_data)
+
+
+@app.route('/Warnung/all', methods=['GET'])
+def get_warnings():
+    try:
+        warnings = Warning.query.all()
+    except TypeError:
+        warnings = []
+
+    warnings_list = []
+
+    for warning in warnings:
+        warning_data = {
+            'name': warning.name,
+            'beschreibung': warning.description,
+            'abschnitssId': warning.segmentId,
+            'startzeitpunkt': warning.validFrom,
+            'endzeitpunkt': warning.validTo
+        }
+        warnings_list.append(warning_data)
+
+    return jsonify(warnings_list)
+
+
+@app.route('/Strecke/<int:route_id>/Warnungen', methods=['GET'])
+def get_route_warnings(route_id):
+    # Get the route
+    route = Route.query.get(route_id)
+    if route is None:
+        return jsonify({'error': 'Route not found'}), 404
+
+    # Get the segments of the route
+    segments = Segment.query.filter(Segment.route.any(id=route.id)).all()
+
+    warnings_list = []
+    for segment in segments:
+        # Get the warnings of the segment
+        warnings = Warning.query.filter_by(segment=segment.id).all()
+        for warning in warnings:
+            warning_data = {
+                'id': warning.id,
+                'name': warning.name,
+                'beschreibung': warning.description,
+                'startzeitpunkt': warning.validFrom.isoformat() if warning.validFrom else None,
+                'endzeitpunkt': warning.validTo.isoformat() if warning.validTo else None,
+                'Abschnitt': warning.segment
+            }
+            warnings_list.append(warning_data)
+
+    return jsonify(warnings_list)
+
+
+@app.route('/Abschnitt/<int:segment_id>/Warnungen', methods=['GET'])
+def get_segment_warnings(segment_id):
+    # Get the segment
+    segment = Segment.query.get(segment_id)
+    if segment is None:
+        return jsonify({'error': 'Segment not found'}), 404
+
+    # Get the warnings of the segment
+    warnings = Warning.query.filter_by(segment=segment.id).all()
+
+    warnings_list = []
+    for warning in warnings:
+        warning_data = {
+            'id': warning.id,
+            'name': warning.name,
+            'beschreibung': warning.description,
+            'startzeitpunkt': warning.validFrom.isoformat() if warning.validFrom else None,
+            'endzeitpunkt': warning.validTo.isoformat() if warning.validTo else None,
+            'abschnittId': warning.segment
+        }
+        warnings_list.append(warning_data)
+
+    return jsonify(warnings_list)
+
+@app.route('/StreckeVonBis/<int:route_id>/<start_station_name>/<end_station_name>/Warnungen', methods=['GET'])
+def get_route_warnings_between_stations(route_id, start_station_name, end_station_name):
+    # Get the route
+    route = Route.query.get(route_id)
+    if route is None:
+        return jsonify({'error': 'Route not found'}), 404
+
+    # Get the start and end stations
+    start_station = Station.query.filter_by(name=start_station_name).first()
+    end_station = Station.query.filter_by(name=end_station_name).first()
+
+    if start_station is None or end_station is None:
+        return jsonify({'error': 'Start or end station not found'}), 404
+
+    # Get the segments of the route between the start station and the end station
+    segments = db.session.query(routesegments).filter_by(route_id=route.id).all()
+    start_index = next((index for index, segment in enumerate(segments) if Segment.query.get(segment.segment_id).startStation == start_station.id), None)
+    end_index = next((index for index, segment in enumerate(segments) if Segment.query.get(segment.segment_id).endStation == end_station.id), None)
+
+    if start_index is None or end_index is None or start_index > end_index:
+        return jsonify({'error': 'Invalid start station or end station'}), 404
+
+    segments_between_stations = segments[start_index:end_index+1]
+
+    warnings_list = []
+    for segment in segments_between_stations:
+        # Get the warnings of the segment
+        warnings = Warning.query.filter_by(segment=segment.segment_id).all()
+        for warning in warnings:
+            warning_data = {
+                'id': warning.id,
+                'name': warning.name,
+                'beschreibung': warning.description,
+                'startzeitpunkt': warning.validFrom.isoformat() if warning.validFrom else None,
+                'endzeitpunkt': warning.validTo.isoformat() if warning.validTo else None,
+                'abschnittId': warning.segment
+            }
+            warnings_list.append(warning_data)
+
+    return jsonify(warnings_list)
