@@ -67,15 +67,25 @@ class Ticket(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     owner: so.Mapped[User] = so.relationship(back_populates='tickets')
-    price: so.Mapped[float] = so.mapped_column(sa.Float(10))
-    departure_date: so.Mapped[Optional[datetime]] = so.mapped_column(sa.Date)
-    arrival_date: so.Mapped[Optional[datetime]] = so.mapped_column(sa.Date)
-    start_station: so.Mapped[Optional[str]] = so.mapped_column(sa.String(50))
-    end_station: so.Mapped[Optional[str]] = so.mapped_column(sa.String(50))
+    total_price: so.Mapped[float] = so.mapped_column(sa.Float(10))
     status: so.Mapped[Optional[str]] = so.mapped_column(sa.String(15))
     promotion_id: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Promotion.id),
                                                index=True)
     promotion: so.Mapped[Optional[Promotion]] = so.relationship(back_populates='tickets')
+    sections: so.WriteOnlyMapped['Section'] = so.relationship(
+        back_populates='ticket')
+
+class Section(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    train_name = db.Column(db.String(50))
+    seat_number = db.Column(db.Integer)
+    start_station = db.Column(db.String(50))
+    end_station = db.Column(db.String(50))
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
+    price = db.Column(db.Float(10))
+    ticket_id: so.Mapped[Optional[int]] = sa.Column(sa.ForeignKey('ticket.id'), index=True) # hat mit so.mapped_column nicht funktoiniert
+    ticket: so.Mapped[Optional['Ticket']] = so.relationship('Ticket', back_populates='sections')
 
 @login.user_loader
 def load_user(id):

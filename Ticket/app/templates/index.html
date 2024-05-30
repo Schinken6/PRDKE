@@ -15,10 +15,10 @@
         margin: 20px auto;
     }
 
-    input[type="text"], input[type="email"], input[type="date"], input[type="time"] {
+    input[type="text"], input[type="email"], input[type="date"], input[type="time"], select {
         width: 100%;
-        padding: 10px;
-        margin: 10px 0;
+        padding: 12px 15px;
+        margin: 8px 0;
         box-sizing: border-box;
         border: 2px solid #ccc;
         border-radius: 4px;
@@ -27,9 +27,13 @@
         font-size: 16px;
     }
 
-    input[type="date"]:focus, input[type="time"]:focus {
+    input[type="date"]:focus, input[type="time"]:focus, select:focus {
         border-color: #4169E1;
         box-shadow: 0 0 8px rgba(65, 105, 225, 0.6);
+    }
+
+    select:hover {
+        border-color: #6495ED;
     }
 
     label {
@@ -43,34 +47,48 @@
         background-color: rgb(64, 38, 237);
         color: white;
         border: none;
-        padding: 10px 20px;
+        padding: 12px 20px;
         cursor: pointer;
         border-radius: 4px;
         display: block;
         width: 100%;
         margin-top: 10px;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+
+    button:hover {
+        background-color: rgb(50, 30, 200);
     }
 </style>
 <div class="search-container">
     <h2>Ticketsuche</h2>
-    <form>
-        <div>
-            <label for="from">Von</label>
-            <input type="text" id="from" name="from" placeholder="WIEN">
-        </div>
-        <div>
-            <label for="to">Nach</label>
-            <input type="text" id="to" name="to" placeholder="LINZ">
-        </div>
-        <div>
-            <label for="date">Datum</label>
-            <input type="date" id="date" name="date">
-        </div>
-        <div>
-            <label for="time">Zeit</label>
-            <input type="time" id="time" name="time">
-        </div>
-        <button type="submit">Suchen</button>
-    </form>
+<form method="post" action="{{ url_for('search_tickets') }}">
+    <div>
+        <label for="from">Von:</label>
+        <select id="from" name="from">
+            {% for station in start_stations %}
+                <option value="{{ station }}">{{ station }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="to">Nach:</label>
+        <select id="to" name="to">
+            {% for station in end_stations %}
+                <option value="{{ station }}">{{ station }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label for="date">Datum:</label>
+        <input type="date" id="date" name="date">
+    </div>
+    <div>
+        <label for="time">Zeit:</label>
+        <input type="time" id="time" name="time">
+    </div>
+    <button type="submit">Suchen</button>
+</form>
 </div>
 {% endblock %}
