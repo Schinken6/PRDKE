@@ -2,18 +2,28 @@
 
 {% block content %}
 <style>
+    .form-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        justify-content: space-between;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
     .form-group {
+        flex: 1 1 45%;
+        display: flex;
+        flex-direction: column;
         margin-bottom: 15px;
     }
 
     .form-label {
-        display: block;
         font-weight: bold;
         margin-bottom: 5px;
     }
 
     .form-control {
-        width: 30%;
         padding: 8px;
         border: 1px solid #ccc;
         border-radius: 4px;
@@ -35,28 +45,94 @@
         display: inline-block;
     }
 
+    .form-error {
+        color: red;
+        font-size: 0.9em;
+    }
+
+    .form-group-full {
+        flex: 1 1 100%;
+    }
 </style>
 
 <h1>Profil bearbeiten</h1>
 <form action="" method="post">
     {{ form.hidden_tag() }}
+    <div class="form-container">
+        <div class="form-group">
+            {{ form.username.label(class="form-label") }}
+            {{ form.username(class="form-control") }}
+            {% for error in form.username.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
 
-    <div class="form-group">
-        {{ form.username.label(class="form-label") }}
-        {{ form.username(size=32, class="form-control") }}
-        {% for error in form.username.errors %}
-            <span>[{{ error }}]</span>
-        {% endfor %}
+        <div class="form-group">
+            {{ form.email.label(class="form-label") }}
+            {{ form.email(class="form-control") }}
+            {% for error in form.email.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.firstname.label(class="form-label") }}
+            {{ form.firstname(class="form-control") }}
+            {% for error in form.firstname.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.lastname.label(class="form-label") }}
+            {{ form.lastname(class="form-control") }}
+            {% for error in form.lastname.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.zip.label(class="form-label") }}
+            {{ form.zip(class="form-control") }}
+            {% for error in form.zip.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.city.label(class="form-label") }}
+            {{ form.city(class="form-control") }}
+            {% for error in form.city.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.street.label(class="form-label") }}
+            {{ form.street(class="form-control") }}
+            {% for error in form.street.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% for error in form.password.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
+
+        <div class="form-group">
+            {{ form.confirm.label(class="form-label") }}
+            {{ form.confirm(class="form-control") }}
+            {% for error in form.confirm.errors %}
+                <span class="form-error">[{{ error }}]</span>
+            {% endfor %}
+        </div>
     </div>
-
-    <div class="form-group">
-        {{ form.email.label(class="form-label") }}
-        {{ form.email(size=32, class="form-control") }}
-        {% for error in form.email.errors %}
-            <span>[{{ error }}]</span>
-        {% endfor %}
+    <div class="form-group-full">
+        <button type="submit" class="btn btn-primary">Änderungen speichern</button>
     </div>
-
-    <button type="submit" class="btn btn-primary">Änderungen speichern</button>
 </form>
 {% endblock %}
