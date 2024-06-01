@@ -388,7 +388,8 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
                 'arrival_date': arrival_time.strftime("%d.%m.%Y"),
                 'start_station': form_start_station,
                 'end_station': form_end_station,
-                'price': str(total_price) + "€"
+                'price': str(total_price) + "€",
+                'route_id': schedule['routeid']
             })
 
     if valid_route_found: # wenn mindestens eine Kombination von Start- und Endbahnhof gefunden wurde
@@ -466,10 +467,63 @@ def ticket_details():
         flash('Kein Ticket in der Session gefunden.', 'error')
         return redirect(url_for('ticket_listing_route'))
 
-    # Dummy-Warnung aus einer Variable
-    warning = "Dies ist eine Dummy-Warnung"
+    # Warnings von API abfragen
+    warnings = []
 
-    return render_template('ticket_details.html', ticket_data=ticket_data, ticket_index=ticket_index, warning=warning)
+    if 'before_switch' in ticket_data:  # Ticket mit Umstieg
+        before_switch = ticket_data['before_switch']
+        after_switch = ticket_data['after_switch']
+        before_departure_time = datetime.strptime(
+            f"{before_switch['departure_date']} {before_switch['departure_time']}", '%d.%m.%Y %H:%M')
+        before_arrival_time = datetime.strptime(f"{before_switch['arrival_date']} {before_switch['arrival_time']}",
+                                                '%d.%m.%Y %H:%M')
+        after_departure_time = datetime.strptime(f"{after_switch['departure_date']} {after_switch['departure_time']}",
+                                                 '%d.%m.%Y %H:%M')
+        after_arrival_time = datetime.strptime(f"{after_switch['arrival_date']} {after_switch['arrival_time']}",
+                                               '%d.%m.%Y %H:%M')
+
+        warnings.extend(
+            get_warnings(before_switch['route_id'], before_switch['start_station'], before_switch['end_station'],
+                         before_departure_time, before_arrival_time))
+        warnings.extend(
+            get_warnings(after_switch['route_id'], after_switch['start_station'], after_switch['end_station'],
+                         after_departure_time, after_arrival_time))
+    else:  # Ticket ohne Umstieg
+        departure_time = datetime.strptime(f"{ticket_data['departure_date']} {ticket_data['departure_time']}",
+                                           '%d.%m.%Y %H:%M')
+        arrival_time = datetime.strptime(f"{ticket_data['arrival_date']} {ticket_data['arrival_time']}",
+                                         '%d.%m.%Y %H:%M')
+        warnings.extend(get_warnings(ticket_data['route_id'], ticket_data['start_station'], ticket_data['end_station'],
+                                     departure_time, arrival_time))
+
+    print("Warnungen:", warnings)
+
+    return render_template('ticket_details.html', ticket_data=ticket_data, ticket_index=ticket_index, warnings=warnings)
+
+
+def get_warnings(route_id, departure_station, arrival_station, departure_time, arrival_time):
+    url = f"http://localhost:5001/StreckeVonBis/{route_id}/{departure_station}/{arrival_station}/Warnungen"
+    print(f"Abfrage von: {url}")
+
+    response = requests.get(url)
+
+    if response.status_code == 200:
+        warnings = response.json()
+        print(f"Warnings received: {warnings}")
+        valid_warnings = []
+        for warning in warnings:
+            startzeitpunkt = datetime.strptime(warning['startzeitpunkt'], "%Y-%m-%dT%H:%M:%S")
+            endzeitpunkt = datetime.strptime(warning['endzeitpunkt'], "%Y-%m-%dT%H:%M:%S")
+            if startzeitpunkt <= departure_time <= endzeitpunkt or startzeitpunkt <= arrival_time <= endzeitpunkt:
+                valid_warnings.append(f"{warning['name']}: {warning['beschreibung']}")
+            else:
+                print({warning['name']})
+                print("Datum dieser Warning passt nicht zusammen")
+        return valid_warnings
+    else:
+        print(f"Konnte Warnings nicht abgreifen: {response.status_code}")
+
+    return []
 
 @app.route('/api/railwayschedules', methods=['GET']) # temporäre eigene API, bis die API von Marko fertig ist
 def api_railwayschedules():
@@ -782,6 +836,80 @@ def api_railwayschedules():
                     "end": "Linz",
                     "nutzungsentgeld": 5,
                     "duration": 25
+                }
+            ],
+            "crew": [
+                {
+                    "personalid": 5,
+                    "name": "Lara Müller"
+                },
+                {
+                    "personalid": 6,
+                    "name": "Jan Hofer"
+                }
+            ],
+            "train": {
+                "trainid": 3,
+                "train_name": "IC300"
+            }
+        },
+        {
+            "date": "01.06.2024",
+            "time": "13:30",
+            "priceadjust_percent": 10,
+            "railwayscheduleid": 3,
+            "routeid": 1,
+            "startstation": "WienHBF",
+            "endstation": "Salzburg HBF",
+            "stationplan": [
+                {
+                    "start": "WienHBF",
+                    "end": "Wels HBF",
+                    "nutzungsentgeld": 22.5,
+                    "duration": 65
+                },
+                {
+                    "start": "Wels HBF",
+                    "end": "Salzburg HBF",
+                    "nutzungsentgeld": 19,
+                    "duration": 55
+                }
+            ],
+            "crew": [
+                {
+                    "personalid": 5,
+                    "name": "Lara Müller"
+                },
+                {
+                    "personalid": 6,
+                    "name": "Jan Hofer"
+                }
+            ],
+            "train": {
+                "trainid": 3,
+                "train_name": "IC300"
+            }
+        },
+        {
+            "date": "01.06.2026",
+            "time": "13:30",
+            "priceadjust_percent": 10,
+            "railwayscheduleid": 3,
+            "routeid": 1,
+            "startstation": "WienHBF",
+            "endstation": "Salzburg HBF",
+            "stationplan": [
+                {
+                    "start": "WienHBF",
+                    "end": "Wels HBF",
+                    "nutzungsentgeld": 22.5,
+                    "duration": 65
+                },
+                {
+                    "start": "Wels HBF",
+                    "end": "Salzburg HBF",
+                    "nutzungsentgeld": 19,
+                    "duration": 55
                 }
             ],
             "crew": [

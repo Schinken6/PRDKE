@@ -62,8 +62,10 @@
 <div class="ticket-details">
     <h1>Ticket-Details</h1>
 
-    {% if warning %}
-    <div class="warning">{{ warning }}</div>
+    {% if warnings %}
+        {% for warning in warnings %}
+        <div class="warning">{{ warning }}</div>
+        {% endfor %}
     {% endif %}
 
     <table>
