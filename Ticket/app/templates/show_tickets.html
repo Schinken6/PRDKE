@@ -60,14 +60,15 @@
         </tr>
     </thead>
     <tbody>
-        {% for ticket in tickets %}
+        {% for index, ticket in tickets %}
         <tr>
             <td>{{ ticket.train_name }}</td>
             <td>{{ ticket.departure_time }}</td>
             <td>{{ ticket.arrival_time }}</td>
             <td>{{ ticket.price }}</td>
             <td>
-                <form action="{{ url_for('purchase_ticket', ticket_id=ticket.ticket_id) }}" method="post">
+                <form action="{{ url_for('ticket_details') }}" method="post">
+                    <input type="hidden" name="ticket_index" value="{{ index }}">
                     <button type="submit">Kaufen</button>
                 </form>
             </td>

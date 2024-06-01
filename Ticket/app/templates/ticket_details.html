@@ -1,10 +1,138 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
+{% extends "base.html" %}
 
-</body>
-</html>
+{% block content %}
+<style>
+    .ticket-details {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fff;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+    }
+
+    h1 {
+        color: #333;
+    }
+
+    .warning {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+
+    th, td {
+        padding: 12px;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: rgb(195, 105, 101);
+        color: white;
+    }
+
+    .checkbox {
+        margin-top: 20px;
+    }
+
+    .button {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-decoration: none;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .button:hover {
+        background-color: #365f9c;
+    }
+</style>
+
+<div class="ticket-details">
+    <h1>Ticket-Details</h1>
+
+    {% if warning %}
+    <div class="warning">{{ warning }}</div>
+    {% endif %}
+
+    <table>
+        <thead>
+            <tr>
+                <th>Zug</th>
+                <th>Abfahrtszeit</th>
+                <th>Ankunftszeit</th>
+                <th>Startstation</th>
+                <th>Endstation</th>
+                <th>Preis</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if 'before_switch' in ticket_data %}
+            <tr>
+                <td>{{ ticket_data.before_switch.train_name }}</td>
+                <td>{{ ticket_data.before_switch.departure_time }}</td>
+                <td>{{ ticket_data.before_switch.arrival_time }}</td>
+                <td>{{ ticket_data.before_switch.start_station }}</td>
+                <td>{{ ticket_data.before_switch.end_station }}</td>
+                <td>{{ ticket_data.before_switch.price }}</td>
+            </tr>
+            <tr>
+                <td>{{ ticket_data.after_switch.train_name }}</td>
+                <td>{{ ticket_data.after_switch.departure_time }}</td>
+                <td>{{ ticket_data.after_switch.arrival_time }}</td>
+                <td>{{ ticket_data.after_switch.start_station }}</td>
+                <td>{{ ticket_data.after_switch.end_station }}</td>
+                <td>{{ ticket_data.after_switch.price }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td>{{ ticket_data.train_name }}</td>
+                <td>{{ ticket_data.departure_time }}</td>
+                <td>{{ ticket_data.arrival_time }}</td>
+                <td>{{ ticket_data.start_station }}</td>
+                <td>{{ ticket_data.end_station }}</td>
+                <td>{{ ticket_data.price }}</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <h3>Gesamtpreis: <span id="total_price">{{ ticket_data.price }}</span></h3>
+
+    <form action="{{ url_for('purchase_ticket') }}" method="post">
+        <input type="hidden" name="ticket_index" value="{{ ticket_index }}">
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" id="reserve_seat" name="reserve_seat" value="yes" onclick="updatePrice()"> Sitzplatz reservieren (+3.00€)
+            </label>
+        </div>
+        <button type="submit" class="button">Kaufen</button>
+    </form>
+</div>
+
+<script>
+    function updatePrice() {
+        let checkbox = document.getElementById('reserve_seat');
+        let totalPriceElem = document.getElementById('total_price');
+        let basePrice = parseFloat('{{ ticket_data.price.replace("€", "") }}');
+        let totalPrice = basePrice;
+
+        if (checkbox.checked) {
+            totalPrice += 3;
+        }
+
+        totalPriceElem.textContent = totalPrice.toFixed(2) + '€';
+    }
+</script>
+{% endblock %}

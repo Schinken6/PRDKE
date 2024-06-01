@@ -83,6 +83,8 @@ class Section(db.Model):
     end_station = db.Column(db.String(50))
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
+    start_time = db.Column(db.Time)
+    end_time = db.Column(db.Time)
     price = db.Column(db.Float(10))
     ticket_id: so.Mapped[Optional[int]] = sa.Column(sa.ForeignKey('ticket.id'), index=True) # hat mit so.mapped_column nicht funktoiniert
     ticket: so.Mapped[Optional['Ticket']] = so.relationship('Ticket', back_populates='sections')

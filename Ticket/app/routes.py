@@ -1,10 +1,10 @@
 from datetime import datetime, timedelta
-from flask import request, render_template, flash, redirect, url_for, jsonify
+from flask import session, request, render_template, flash, redirect, url_for, jsonify
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, BuyTicketForm, NewPromotionForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
-from app.models import User, Ticket, Promotion
+from app.models import User, Ticket, Promotion, Section
 from flask_login import logout_user, login_required
 from urllib.parse import urlsplit
 from app.forms import EditProfileForm
@@ -85,8 +85,33 @@ def register():
 def user(username):
     user = db.first_or_404(sa.select(User).where(User.username == username))
     tickets = db.session.query(Ticket).filter_by(user_id=current_user.id).all()
-    return render_template('user.html', user=user, tickets=tickets)
 
+    # Überprüfen, ob alle Routen eines Tickets veraltet sind und den Status aktualisieren
+    for ticket in tickets:
+        sections = db.session.query(Section).filter_by(ticket_id=ticket.id).all()
+        all_sections_expired = True
+        for section in sections:
+            if section.end_date > datetime.now().date() or (
+                    section.end_date == datetime.now().date() and section.end_time > datetime.now().time()):
+                all_sections_expired = False
+                break
+
+        if all_sections_expired and ticket.status != 'verbraucht':
+            ticket.status = 'verbraucht'
+            db.session.commit()
+
+    return render_template('user.html', user=user, tickets=tickets,
+                           sections={ticket.id: db.session.query(Section).filter_by(ticket_id=ticket.id).all() for
+                                     ticket in tickets})
+
+
+@app.route('/cancel_ticket/<int:ticket_id>', methods=['POST'])
+def cancel_ticket(ticket_id):
+    ticket = Ticket.query.get_or_404(ticket_id)
+    ticket.status = 'storniert'
+    db.session.commit()
+    flash('Ticket erfolgreich storniert', 'success')
+    return redirect(url_for('user', username=current_user.username))
 
 @app.route('/admin', methods=['GET', 'POST'])
 @login_required
@@ -135,21 +160,23 @@ def delete_promotion(promotion_id):
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
-    form = EditProfileForm(current_user.username)
+    form = EditProfileForm(current_user, obj=current_user)
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.email = form.email.data
+        current_user.firstname = form.firstname.data
+        current_user.lastname = form.lastname.data
+        current_user.zip = form.zip.data
+        current_user.city = form.city.data
+        current_user.street = form.street.data
+        current_user.set_password(form.password.data)
         db.session.commit()
-        flash('Änderungen wurden gespeichert!.')
+        flash('Dein Profil wurde aktualisiert.', 'success')
         return redirect(url_for('edit_profile'))
-    elif request.method == 'GET':
-        form.username.data = current_user.username
-        form.email.data = current_user.email
-    return render_template('edit_profile.html', title='Profil bearbeiten',
-                           form=form)
+    return render_template('edit_profile.html', form=form)
 
 
-@app.route('/buyticket', methods=['GET', 'POST'])
+@app.route('/buyticket', methods=['GET', 'POST']) # Wurde nur für technischen Durchstich zur Veranschauligung der Persistierung einer Entität verwendet
 @login_required
 def buy_ticket():
     form = BuyTicketForm()
@@ -221,6 +248,10 @@ def update_ticket(ticket_id):
 
 @app.route('/search_tickets', methods=['POST'])
 def search_tickets():
+    # Zwischenspeicher löschen
+    session.pop('ticketswithswitch', None)
+    session.pop('tickets', None)
+
     form_start_station = request.form['from']
     form_end_station = request.form['to']
     date = request.form['date']
@@ -250,7 +281,8 @@ def search_tickets():
 
     if isinstance(filtered_schedules, list): # Direktverbindung gefunden?
         print(f"Gefundene Fahrten: {filtered_schedules}")
-        return render_template('show_tickets.html', tickets=filtered_schedules)
+        session['tickets'] = filtered_schedules  # Zwischenspeichern für Kauf-Methode
+        return redirect(url_for('show_tickets'))
     else: # keine Direktverbindung gefunden
         print("Keine direkten Fahrten gefunden, suche nach möglichen Umstiegen.")
         after_switch = "Fehler"
@@ -285,14 +317,19 @@ def search_tickets():
                                         combined_ticket = { # Pseudo Ticket erstellen
                                             'train_name': f"{before['train_name']} mit Umstieg auf {after['train_name']} in {actual_station} um {after['departure_time']} (mit {waiting_time} Minuten Wartezeit)",
                                             'departure_time': before['departure_time'],
+                                            'departure_date': before['departure_date'],
                                             'arrival_time': after['arrival_time'],
+                                            'arrival_date': after['arrival_date'],
+                                            'before_switch': before,
+                                            'after_switch': after,
                                             'price': f"{float(before['price'].strip('€')) + float(after['price'].strip('€'))}€"
                                         }
                                         valid_tickets.append(combined_ticket) # zu Liste hinzufügen
                                         print(f"Gefundene gültige Verbindung: {combined_ticket}")
 
                             if valid_tickets: # wenn Tickets vorhanden sind, auf nächster Seite anzeigen
-                                return render_template('show_tickets.html', tickets=valid_tickets)
+                                session['ticketswithswitch'] = valid_tickets # Zwischenspeichern für Kauf-Methode
+                                return redirect(url_for('show_tickets'))
                             else:
                                 print("Keine gültigen Verbindungen mit akzeptabler Umstiegszeit gefunden.")
                         else:
@@ -330,13 +367,13 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
                 if not (start_time <= current_time <= end_time): # Zeit bei dieser Haltestelle muss zwischen eingegebener Startzeit und festgelegter Endzeit liegen
                     continue # zu nächstem Schleifendurchgang springen
                 processing_route = True # Bedingung für untenstehendes IF
-                departure_time = current_time.strftime("%H:%M")
+                departure_time = current_time
 
             current_time += timedelta(minutes=segment['duration']) # aktualisierung der Zeit für aktuelle Station
 
             if processing_route: # Wenn Startbahnhof gefunden wurde
                 if segment['end'] == form_end_station: # Wenn Endbahnhof gefunden wurde
-                    arrival_time = current_time.strftime("%H:%M")
+                    arrival_time = current_time
                     total_price += segment['nutzungsentgeld']
                     break
                 total_price += segment['nutzungsentgeld']
@@ -345,8 +382,12 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
             valid_route_found = True # für Return
             filtered_schedules.append({
                 'train_name': schedule['train']['train_name'],
-                'departure_time': departure_time,
-                'arrival_time': arrival_time,
+                'departure_time': departure_time.strftime("%H:%M"),
+                'departure_date': departure_time.strftime("%d.%m.%Y"),
+                'arrival_time': arrival_time.strftime("%H:%M"),
+                'arrival_date': arrival_time.strftime("%d.%m.%Y"),
+                'start_station': form_start_station,
+                'end_station': form_end_station,
                 'price': str(total_price) + "€"
             })
 
@@ -355,12 +396,80 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
     else: # Rückgabe von Fehlermeldung (keine Liste )
         return jsonify({'error': 'Die Fahrt ist in dieser Konstellation nicht möglich.'}), 400
 
+@app.route('/show_tickets', methods=['GET']) # Tickets anzeigen
+def show_tickets():
+    if 'ticketswithswitch' in session:
+        return render_template('show_tickets.html', tickets=enumerate(session.get('ticketswithswitch'))) # Umwandlung der Tickets aus Zwischenspeicher in enum mit Index
+    elif 'tickets' in session:
+        return render_template('show_tickets.html', tickets=enumerate(session.get('tickets'))) # Umwandlung der Tickets aus Zwischenspeicher in enum mit Index
 
-@app.route('/purchase_ticket', methods=['POST']) # funktioniert noch nicht
+@app.route('/purchase_ticket', methods=['POST']) # Ticket kaufen
 def purchase_ticket():
-    ticket_id = request.form['ticket_id']
-    return render_template('ticket_purchase.html', ticket_id=ticket_id)
+    ticket_index = int(request.form.get('ticket_index')) # Index aus dem Formular holen
+    reserve_seat = request.form.get('reserve_seat') == 'yes'  # Prüfen, ob Sitzplatz reserviert werden soll
+    if 'ticketswithswitch' in session: # Wenn Tickets mit Umstieg vorhanden sind
+        ticket_data = session['ticketswithswitch'][ticket_index]
+    elif 'tickets' in session: # Wenn Tickets ohne Umstieg vorhanden sind
+        ticket_data = session['tickets'][ticket_index]
 
+    ## Für Sitzplatz 3€ ergänzen falls angekreuzt
+    base_price = float(ticket_data['price'].replace('€', ''))
+    total_price = base_price + 3 if reserve_seat else base_price
+
+    # Ticket-Objekt erstellen
+    ticket = Ticket(
+        user_id=current_user.id,
+        total_price=total_price,
+        status='aktiv'
+    )
+    db.session.add(ticket)
+    print("db session added:")
+    print(ticket)
+
+    if 'before_switch' in ticket_data:  # Hat das Ticket einen Umstieg
+        save_section(ticket_data['before_switch'], ticket)
+        save_section(ticket_data['after_switch'], ticket)
+    else:  # Kein Umstieg im Ticket
+        save_section(ticket_data, ticket)
+
+    db.session.commit()
+    flash('Ticket erfolgreich gekauft', 'success')
+    return redirect(url_for('user', username=current_user.username))
+
+def save_section(section_data, ticket):
+    print("section_data")
+    print(section_data)
+    section = Section(
+        train_name=section_data['train_name'],
+        seat_number=None,  # Sitzplatznummer sollte noch ergänzt werden
+        start_station=section_data['start_station'],
+        end_station=section_data['end_station'],
+        start_date=datetime.strptime(section_data['departure_date'], '%d.%m.%Y').date(),
+        end_date=datetime.strptime(section_data['arrival_date'], '%d.%m.%Y').date(),
+        start_time=datetime.strptime(section_data['departure_time'], '%H:%M').time(),
+        end_time=datetime.strptime(section_data['arrival_time'], '%H:%M').time(),
+        price=float(section_data['price'].replace('€', '')),
+        ticket=ticket
+    )
+    db.session.add(section)
+    print("db session added:")
+    print(section)
+
+@app.route('/ticket_details', methods=['POST']) # Ticket kaufen
+def ticket_details():
+    ticket_index = int(request.form.get('ticket_index')) # Index aus dem Formular holen
+    if 'ticketswithswitch' in session:  # Wenn Tickets mit Umstieg vorhanden sind
+        ticket_data = session['ticketswithswitch'][ticket_index]
+    elif 'tickets' in session:  # Wenn Tickets ohne Umstieg vorhanden sind
+        ticket_data = session['tickets'][ticket_index]
+    else:
+        flash('Kein Ticket in der Session gefunden.', 'error')
+        return redirect(url_for('ticket_listing_route'))
+
+    # Dummy-Warnung aus einer Variable
+    warning = "Dies ist eine Dummy-Warnung"
+
+    return render_template('ticket_details.html', ticket_data=ticket_data, ticket_index=ticket_index, warning=warning)
 
 @app.route('/api/railwayschedules', methods=['GET']) # temporäre eigene API, bis die API von Marko fertig ist
 def api_railwayschedules():
@@ -466,6 +575,55 @@ def api_railwayschedules():
         {
             "date": "01.01.2024",
             "time": "10:00",
+            "priceadjust_percent": 10,
+            "railwayscheduleid": 1,
+            "routeid": 1,
+            "startstation": "Steyr Bahnhof",
+            "endstation": "St.Valentin Bahnhof",
+            "stationplan": [
+                {
+                    "start": "Steyr Bahnhof",
+                    "end": "Steyr Munichholz Bahnhof",
+                    "nutzungsentgeld": 5,
+                    "duration": 15
+                },
+                {
+                    "start": "Steyr Munichholz Bahnhof",
+                    "end": "Ramingdorf",
+                    "nutzungsentgeld": 18,
+                    "duration": 10
+                },
+                {
+                    "start": "Ramingdorf",
+                    "end": "Enns",
+                    "nutzungsentgeld": 2,
+                    "duration": 20
+                },
+                {
+                    "start": "Enns",
+                    "end": "St.Valentin Bahnhof",
+                    "nutzungsentgeld": 1.75,
+                    "duration": 15
+                }
+            ],
+            "crew": [
+                {
+                    "personalid": 1,
+                    "name": "Tom Baum"
+                },
+                {
+                    "personalid": 2,
+                    "name": "Andrea Baum"
+                }
+            ],
+            "train": {
+                "trainid": 1,
+                "train_name": "WB100"
+            }
+        },
+        {
+            "date": "01.06.2024",
+            "time": "17:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
             "routeid": 1,

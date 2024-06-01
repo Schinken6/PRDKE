@@ -40,21 +40,30 @@ class RegistrationForm(FlaskForm):
 
 class EditProfileForm(FlaskForm):
     username = StringField('Benutzername', validators=[DataRequired()])
-    about_me = TextAreaField('Über mich', validators=[Length(min=0, max=140)])
-    email = StringField('E-Mail', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    firstname = StringField('Vorname', validators=[DataRequired()])
+    lastname = StringField('Nachname', validators=[DataRequired()])
+    zip = StringField('Postleitzahl', validators=[DataRequired()])
+    city = StringField('Stadt', validators=[DataRequired()])
+    street = StringField('Straße', validators=[DataRequired()])
+    password = PasswordField('Neues Passwort', validators=[EqualTo('confirm', message='Passwörter müssen übereinstimmen')])
+    confirm = PasswordField('Passwort bestätigen')
+    submit = SubmitField('Änderungen speichern')
 
-    def __init__(self, original_username, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.original_username = original_username
-
+    def __init__(self, current_user, *args, **kwargs):
+        super(EditProfileForm, self).__init__(*args, **kwargs)
+        self.current_user = current_user
 
     def validate_username(self, username):
-        if username.data != self.original_username:
-            user = db.session.scalar(sa.select(User).where(
-                User.username == self.username.data))
-            if user is not None:
-                raise ValidationError('Please use a different username.')
+        user = User.query.filter_by(username=username.data).first()
+        if user and user.id != self.current_user.id:
+            raise ValidationError('Dieser Benutzername ist bereits vergeben.')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user and user.id != self.current_user.id:
+            raise ValidationError('Diese E-Mail-Adresse ist bereits vergeben.')
+
 
 class BuyTicketForm(FlaskForm):
     price = StringField('Preis', validators=[DataRequired()])

@@ -30,13 +30,13 @@
         background-color: #f8f8f8;
     }
 
-    input[type="text"],
-    input[type="date"] {
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+    .canceled, .used {
+        background-color: #e0e0e0;
+        color: #a0a0a0;
+    }
+
+    .canceled td, .used td {
+        text-decoration: line-through;
     }
 
     button {
@@ -55,6 +55,7 @@
 
     form {
         margin: 0;
+        display: inline;
     }
 </style>
 <h1>Benutzer: {{ user.username }}</h1>
@@ -64,8 +65,8 @@
         <tr>
             <th>Käufer</th>
             <th>Preis</th>
-            <th>Abfahrtsdatum</th>
-            <th>Ankunftsdatum</th>
+            <th>Abfahrtszeit</th>
+            <th>Ankunftszeit</th>
             <th>Startstation</th>
             <th>Endstation</th>
             <th>Status</th>
@@ -74,33 +75,32 @@
     </thead>
     <tbody>
         {% for ticket in tickets %}
-        <tr>
+        <tr class="{% if ticket.status == 'storniert' %}canceled{% elif ticket.status == 'verbraucht' %}used{% endif %}">
             <td>{{ ticket.owner.username }}</td>
+            <td>{{ ticket.total_price }}€</td>
             <td>
-                <form action="{{ url_for('update_ticket', ticket_id=ticket.id) }}" method="post">
-                <input type="text" name="price" value="{{ ticket.price }}">
+                {% if sections[ticket.id] %}
+                    {{ sections[ticket.id][0].start_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][0].start_time.strftime('%H:%M') }}
+                {% else %}
+                    Keine Daten
+                {% endif %}
             </td>
             <td>
-                <input type="date" name="departure_date" value="{{ ticket.departure_date }}">
+                {% if sections[ticket.id] %}
+                    {{ sections[ticket.id][-1].end_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][-1].end_time.strftime('%H:%M') }}
+                {% else %}
+                    Keine Daten
+                {% endif %}
             </td>
+            <td>{{ sections[ticket.id][0].start_station if sections[ticket.id] else '' }}</td>
+            <td>{{ sections[ticket.id][-1].end_station if sections[ticket.id] else '' }}</td>
+            <td>{{ ticket.status }}</td>
             <td>
-                <input type="date" name="arrival_date" value="{{ ticket.arrival_date }}">
-            </td>
-            <td>
-                <input type="text" name="start_station" value="{{ ticket.start_station }}">
-            </td>
-            <td>
-                <input type="text" name="end_station" value="{{ ticket.end_station }}">
-            </td>
-            <td>
-                <input type="text" name="status" value="{{ ticket.status }}">
-            </td>
-            <td>
-                <button type="submit">Aktualisieren</button>
+                {% if ticket.status not in ['storniert', 'verbraucht'] %}
+                <form action="{{ url_for('cancel_ticket', ticket_id=ticket.id) }}" method="post">
+                    <button type="submit">Stornieren</button>
                 </form>
-                <form action="{{ url_for('delete_ticket', ticket_id=ticket.id) }}" method="post">
-                    <button type="submit">Löschen</button>
-                </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}
