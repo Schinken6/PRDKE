@@ -56,6 +56,7 @@
             <th>Abfahrtszeit</th>
             <th>Ankunftszeit</th>
             <th>Preis</th>
+            <th>Rabatt</th>
             <th>Aktionen</th>
         </tr>
     </thead>
@@ -66,6 +67,7 @@
             <td>{{ ticket.departure_time }}</td>
             <td>{{ ticket.arrival_time }}</td>
             <td>{{ ticket.price }}</td>
+            <td>{{ ticket.discount if ticket.discount else 'Kein Rabatt' }}</td>
             <td>
                 <form action="{{ url_for('ticket_details') }}" method="post">
                     <input type="hidden" name="ticket_index" value="{{ index }}">

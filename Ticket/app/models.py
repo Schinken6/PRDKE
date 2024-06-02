@@ -57,7 +57,7 @@ class Promotion(db.Model):
     discount = db.Column(db.Float)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
-    route = db.Column(db.String(64))
+    route = db.Column(db.Integer)
     global_promotion = db.Column(db.Boolean, default=False)
     tickets: so.WriteOnlyMapped['Ticket'] = so.relationship(
         back_populates='promotion', passive_deletes=True)

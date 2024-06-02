@@ -125,22 +125,31 @@ def admin():
 def new_promotion():
     form = NewPromotionForm()
     today_date = datetime.today().strftime('%Y-%m-%d')
+
+    # API-Aufruf, um die Strecken zu erhalten
+    response = requests.get('http://localhost:5001/Strecken')
+    if response.status_code == 200:
+        routes = response.json()
+        form.route.choices = [(route['id'], f"{route['startbahnhof']} - {route['endbahnhof']}") for route in routes]
+
     if form.validate_on_submit():
         promotion = Promotion(
             name=form.name.data,
             discount=form.discount.data,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            route=form.route.data if form.route.data != '' else None,
+            route=form.route.data if form.route.data else None,
             global_promotion=form.global_promotion.data
         )
         db.session.add(promotion)
         db.session.commit()
         flash('Neue Aktion erfolgreich erstellt!')
         return redirect(url_for('admin'))
+    else:
+        print("Form validation failed")
+        print(form.errors)
+
     return render_template('add_promotion.html', title='Neue Aktion anlegen', form=form, today_date=today_date)
-
-
 @app.route('/delete_promotion/<int:promotion_id>', methods=['GET'])
 @login_required
 def delete_promotion(promotion_id):
@@ -322,7 +331,8 @@ def search_tickets():
                                             'arrival_date': after['arrival_date'],
                                             'before_switch': before,
                                             'after_switch': after,
-                                            'price': f"{float(before['price'].strip('€')) + float(after['price'].strip('€'))}€"
+                                            'price': f"{(float(before['price'].strip('€')) + float(after['price'].strip('€'))):.2f}€",
+                                            'discount': "siehe Kauf-Zusammenfassung"
                                         }
                                         valid_tickets.append(combined_ticket) # zu Liste hinzufügen
                                         print(f"Gefundene gültige Verbindung: {combined_ticket}")
@@ -380,6 +390,9 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
 
         if processing_route:
             valid_route_found = True # für Return
+            discounted_price, promotion_id, best_discount = apply_best_promotion(schedule['routeid'], total_price)
+
+            valid_route_found = True  # für Return
             filtered_schedules.append({
                 'train_name': schedule['train']['train_name'],
                 'departure_time': departure_time.strftime("%H:%M"),
@@ -388,14 +401,34 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
                 'arrival_date': arrival_time.strftime("%d.%m.%Y"),
                 'start_station': form_start_station,
                 'end_station': form_end_station,
-                'price': str(total_price) + "€",
-                'route_id': schedule['routeid']
+                'price': f"{discounted_price:.2f}€",
+                'route_id': schedule['routeid'],
+                'promotion_id': promotion_id,
+                'discount': f"{best_discount}%" if best_discount > 0 else None
             })
 
     if valid_route_found: # wenn mindestens eine Kombination von Start- und Endbahnhof gefunden wurde
         return filtered_schedules
     else: # Rückgabe von Fehlermeldung (keine Liste )
         return jsonify({'error': 'Die Fahrt ist in dieser Konstellation nicht möglich.'}), 400
+
+def apply_best_promotion(route_id, price):
+    promotions = db.session.query(Promotion).filter(
+        (Promotion.route == route_id) | (Promotion.global_promotion == True)
+    ).all()
+    print(promotions)
+
+    best_discount = 0
+    best_promotion_id = None
+    for promotion in promotions:
+        if promotion.discount > best_discount:
+            best_discount = promotion.discount
+            best_promotion_id = promotion.id
+
+    if best_discount > 0:
+        price = price * (1 - best_discount / 100)
+
+    return price, best_promotion_id, best_discount
 
 @app.route('/show_tickets', methods=['GET']) # Tickets anzeigen
 def show_tickets():
@@ -533,7 +566,7 @@ def api_railwayschedules():
             "time": "08:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
-            "routeid": 1,
+            "routeid": 6,
             "startstation": "Steyr Bahnhof",
             "endstation": "St.Valentin Bahnhof",
             "stationplan": [
@@ -582,7 +615,7 @@ def api_railwayschedules():
             "time": "09:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
-            "routeid": 1,
+            "routeid": 6,
             "startstation": "Steyr Bahnhof",
             "endstation": "St.Valentin Bahnhof",
             "stationplan": [
@@ -631,7 +664,7 @@ def api_railwayschedules():
             "time": "10:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
-            "routeid": 1,
+            "routeid": 6,
             "startstation": "Steyr Bahnhof",
             "endstation": "St.Valentin Bahnhof",
             "stationplan": [
@@ -680,7 +713,7 @@ def api_railwayschedules():
             "time": "17:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
-            "routeid": 1,
+            "routeid": 6,
             "startstation": "Steyr Bahnhof",
             "endstation": "St.Valentin Bahnhof",
             "stationplan": [
@@ -729,7 +762,7 @@ def api_railwayschedules():
             "time": "11:00",
             "priceadjust_percent": 10,
             "railwayscheduleid": 1,
-            "routeid": 1,
+            "routeid": 9,
             "startstation": "Salzburg",
             "endstation": "Wien",
             "stationplan": [
@@ -778,7 +811,7 @@ def api_railwayschedules():
             "time": "12:00",
             "priceadjust_percent": 15,
             "railwayscheduleid": 2,
-            "routeid": 2,
+            "routeid": 4,
             "startstation": "Linz",
             "endstation": "Graz",
             "stationplan": [
