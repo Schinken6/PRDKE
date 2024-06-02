@@ -59,7 +59,7 @@ class Promotion(db.Model):
     end_date = db.Column(db.Date)
     route = db.Column(db.Integer)
     global_promotion = db.Column(db.Boolean, default=False)
-    tickets: so.WriteOnlyMapped['Ticket'] = so.relationship(
+    sections: so.WriteOnlyMapped['Section'] = so.relationship(
         back_populates='promotion', passive_deletes=True)
 
 class Ticket(db.Model):
@@ -69,9 +69,6 @@ class Ticket(db.Model):
     owner: so.Mapped[User] = so.relationship(back_populates='tickets')
     total_price: so.Mapped[float] = so.mapped_column(sa.Float(10))
     status: so.Mapped[Optional[str]] = so.mapped_column(sa.String(15))
-    promotion_id: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Promotion.id),
-                                               index=True)
-    promotion: so.Mapped[Optional[Promotion]] = so.relationship(back_populates='tickets')
     sections: so.WriteOnlyMapped['Section'] = so.relationship(
         back_populates='ticket')
 
@@ -86,6 +83,9 @@ class Section(db.Model):
     start_time = db.Column(db.Time)
     end_time = db.Column(db.Time)
     price = db.Column(db.Float(10))
+    promotion_id: so.Mapped[Optional[int]] = so.mapped_column(sa.ForeignKey(Promotion.id),
+                                               index=True)
+    promotion: so.Mapped[Optional[Promotion]] = so.relationship(back_populates='sections')
     ticket_id: so.Mapped[Optional[int]] = sa.Column(sa.ForeignKey('ticket.id'), index=True) # hat mit so.mapped_column nicht funktoiniert
     ticket: so.Mapped[Optional['Ticket']] = so.relationship('Ticket', back_populates='sections')
 

@@ -439,6 +439,7 @@ def show_tickets():
 
 @app.route('/purchase_ticket', methods=['POST']) # Ticket kaufen
 def purchase_ticket():
+    seat_info = "Es wurde kein Sitzplatz reserviert!" # für flash unten
     ticket_index = int(request.form.get('ticket_index')) # Index aus dem Formular holen
     reserve_seat = request.form.get('reserve_seat') == 'yes'  # Prüfen, ob Sitzplatz reserviert werden soll
     if 'ticketswithswitch' in session: # Wenn Tickets mit Umstieg vorhanden sind
@@ -470,6 +471,7 @@ def purchase_ticket():
                 return redirect(url_for('show_tickets'))
             save_section(ticket_data['before_switch'], ticket, seat_number_before)
             save_section(ticket_data['after_switch'], ticket, seat_number_after)
+            seat_info = f" Sitzplatznummern: {seat_number_before} (von {ticket_data['before_switch']['start_station']} bis {ticket_data['before_switch']['end_station']}) und {seat_number_after} (von {ticket_data['after_switch']['start_station']} bis {ticket_data['after_switch']['end_station']})"
         else:
             save_section(ticket_data['before_switch'], ticket)
             save_section(ticket_data['after_switch'], ticket)
@@ -481,11 +483,12 @@ def purchase_ticket():
                 db.session.rollback()
                 return redirect(url_for('show_tickets'))
             save_section(ticket_data, ticket, seat_number)
+            seat_info = f" Sitzplatznummer: {seat_number} (von {ticket_data['start_station']} bis {ticket_data['end_station']})"
         else:
             save_section(ticket_data, ticket)
 
     db.session.commit()
-    flash('Ticket erfolgreich gekauft', 'success')
+    flash(f'Ticket erfolgreich gekauft. {seat_info}', 'success')
     return redirect(url_for('user', username=current_user.username))
 
 
@@ -530,7 +533,8 @@ def save_section(section_data, ticket, seat_number=None):
         start_time=datetime.strptime(section_data['departure_time'], '%H:%M').time(),
         end_time=datetime.strptime(section_data['arrival_time'], '%H:%M').time(),
         price=float(section_data['price'].replace('€', '')),
-        ticket=ticket
+        ticket=ticket,
+        promotion_id=section_data['promotion_id']
     )
     db.session.add(section)
     print("db session added:")
