@@ -223,7 +223,7 @@ def delete_ticket(ticket_id):
     return redirect(url_for('user', username=current_user.username))
 
 
-@app.route('/update_ticket/<int:ticket_id>', methods=['POST'])
+@app.route('/update_ticket/<int:ticket_id>', methods=['POST']) # war nur für technischen Durchstich
 @login_required
 def update_ticket(ticket_id):
     ticket = Ticket.query.get(ticket_id)
@@ -461,21 +461,68 @@ def purchase_ticket():
     print(ticket)
 
     if 'before_switch' in ticket_data:  # Hat das Ticket einen Umstieg
-        save_section(ticket_data['before_switch'], ticket)
-        save_section(ticket_data['after_switch'], ticket)
+        if reserve_seat:
+            seat_number_before = get_seat_number(ticket_data['before_switch'])
+            seat_number_after = get_seat_number(ticket_data['after_switch'])
+            if seat_number_before is None or seat_number_after is None:
+                flash('Keine verfügbaren Sitzplätze für eine der Strecken', 'error')
+                db.session.rollback()
+                return redirect(url_for('show_tickets'))
+            save_section(ticket_data['before_switch'], ticket, seat_number_before)
+            save_section(ticket_data['after_switch'], ticket, seat_number_after)
+        else:
+            save_section(ticket_data['before_switch'], ticket)
+            save_section(ticket_data['after_switch'], ticket)
     else:  # Kein Umstieg im Ticket
-        save_section(ticket_data, ticket)
+        if reserve_seat:
+            seat_number = get_seat_number(ticket_data)
+            if seat_number is None:
+                flash('Keine verfügbaren Sitzplätze für die Strecke', 'error')
+                db.session.rollback()
+                return redirect(url_for('show_tickets'))
+            save_section(ticket_data, ticket, seat_number)
+        else:
+            save_section(ticket_data, ticket)
 
     db.session.commit()
     flash('Ticket erfolgreich gekauft', 'success')
     return redirect(url_for('user', username=current_user.username))
 
-def save_section(section_data, ticket):
-    print("section_data")
-    print(section_data)
+
+def get_seat_number(section_data):
+    max_seats = 2 # muss noch von API abgefragt werden
+    start_date = datetime.strptime(section_data['departure_date'], '%d.%m.%Y').date()
+    start_time = datetime.strptime(section_data['departure_time'], '%H:%M').time()
+    end_date = datetime.strptime(section_data['arrival_date'], '%d.%m.%Y').date()
+    end_time = datetime.strptime(section_data['arrival_time'], '%H:%M').time()
+
+    reserved_seats = db.session.query(Section).filter(
+        Section.train_name == section_data['train_name'],
+        Section.start_date == start_date,
+        Section.seat_number.isnot(None)
+    ).all()
+
+    # Überprüfen, welche Sitzplatzreservierungen in diesem Zug zu der Zeit überlappend sind
+    overlapping_reservations = 0
+    for seat in reserved_seats:
+        seat_start_time = datetime.combine(seat.start_date, seat.start_time)
+        seat_end_time = datetime.combine(seat.end_date, seat.end_time)
+        section_start_time = datetime.combine(start_date, start_time)
+        section_end_time = datetime.combine(end_date, end_time)
+
+        # Prüfen, ob es eine Überlappung der Zeiten gibt
+        if (seat_start_time <= section_start_time < seat_end_time) or (
+                seat_start_time < section_end_time <= seat_end_time):
+            overlapping_reservations += 1
+
+    if overlapping_reservations < max_seats:
+        return overlapping_reservations + 1
+    return None
+
+def save_section(section_data, ticket, seat_number=None):
     section = Section(
         train_name=section_data['train_name'],
-        seat_number=None,  # Sitzplatznummer sollte noch ergänzt werden
+        seat_number=seat_number,
         start_station=section_data['start_station'],
         end_station=section_data['end_station'],
         start_date=datetime.strptime(section_data['departure_date'], '%d.%m.%Y').date(),
