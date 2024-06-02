@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, DateField
-from wtforms.validators import ValidationError, DataRequired, Email, EqualTo
+from wtforms.validators import ValidationError, DataRequired, Email, EqualTo, NumberRange, Optional
 import sqlalchemy as sa
 from app import db
 from app.models import User
@@ -76,10 +76,12 @@ class BuyTicketForm(FlaskForm):
 
 class NewPromotionForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
-    discount = DecimalField('Rabatt (%)', validators=[DataRequired()])
-    start_date = DateField('Startdatum', validators=[DataRequired()], format='%Y-%m-%d')
-    end_date = DateField('Enddatum', validators=[DataRequired()], format='%Y-%m-%d')
-    route = SelectField('Strecke (optional)', validators=[],
-                        choices=[('',''), ('LINZ-WELS', 'LINZ-WELS'), ('WIEN-GRAZ', 'WIEN-GRAZ')])
-    global_promotion = BooleanField('globale Aktion')
-    submit = SubmitField('Speichern')
+    discount = DecimalField('Rabatt', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    start_date = DateField('Startdatum')
+    end_date = DateField('Enddatum')
+    route = SelectField('Strecke', choices=[], coerce=int, validators=[Optional()])
+    global_promotion = BooleanField('Globale Aktion')
+
+    def validate_route(form, field):
+        if not form.global_promotion.data and not field.data:
+            raise ValidationError('Bitte wählen Sie eine Strecke oder aktivieren Sie die globale Aktion.')
