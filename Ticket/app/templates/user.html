@@ -2,11 +2,24 @@
 
 {% block content %}
 <style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .table-container {
+        max-height: 80vh;
+        overflow-y: auto; /* Ermöglicht Scrollen */
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
-        margin: 20px 0;
-        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        margin: 0;
         font-size: 0.9em;
     }
 
@@ -58,52 +71,55 @@
         display: inline;
     }
 </style>
+
 <h1>Benutzer: {{ user.username }}</h1>
 <hr>
-<table>
-    <thead>
-        <tr>
-            <th>Käufer</th>
-            <th>Preis</th>
-            <th>Abfahrtszeit</th>
-            <th>Ankunftszeit</th>
-            <th>Startstation</th>
-            <th>Endstation</th>
-            <th>Status</th>
-            <th>Aktionen</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ticket in tickets %}
-        <tr class="{% if ticket.status == 'storniert' %}canceled{% elif ticket.status == 'verbraucht' %}used{% endif %}">
-            <td>{{ ticket.owner.username }}</td>
-            <td>{{ ticket.total_price }}€</td>
-            <td>
-                {% if sections[ticket.id] %}
-                    {{ sections[ticket.id][0].start_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][0].start_time.strftime('%H:%M') }}
-                {% else %}
-                    Keine Daten
-                {% endif %}
-            </td>
-            <td>
-                {% if sections[ticket.id] %}
-                    {{ sections[ticket.id][-1].end_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][-1].end_time.strftime('%H:%M') }}
-                {% else %}
-                    Keine Daten
-                {% endif %}
-            </td>
-            <td>{{ sections[ticket.id][0].start_station if sections[ticket.id] else '' }}</td>
-            <td>{{ sections[ticket.id][-1].end_station if sections[ticket.id] else '' }}</td>
-            <td>{{ ticket.status }}</td>
-            <td>
-                {% if ticket.status not in ['storniert', 'verbraucht'] %}
-                <form action="{{ url_for('cancel_ticket', ticket_id=ticket.id) }}" method="post">
-                    <button type="submit">Stornieren</button>
-                </form>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Käufer</th>
+                <th>Preis</th>
+                <th>Abfahrtszeit</th>
+                <th>Ankunftszeit</th>
+                <th>Startstation</th>
+                <th>Endstation</th>
+                <th>Status</th>
+                <th>Aktionen</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr class="{% if ticket.status == 'storniert' %}canceled{% elif ticket.status == 'verbraucht' %}used{% endif %}">
+                <td>{{ ticket.owner.username }}</td>
+                <td>{{ ticket.total_price }}€</td>
+                <td>
+                    {% if sections[ticket.id] %}
+                        {{ sections[ticket.id][0].start_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][0].start_time.strftime('%H:%M') }}
+                    {% else %}
+                        Keine Daten
+                    {% endif %}
+                </td>
+                <td>
+                    {% if sections[ticket.id] %}
+                        {{ sections[ticket.id][-1].end_date.strftime('%d.%m.%Y') }} {{ sections[ticket.id][-1].end_time.strftime('%H:%M') }}
+                    {% else %}
+                        Keine Daten
+                    {% endif %}
+                </td>
+                <td>{{ sections[ticket.id][0].start_station if sections[ticket.id] else '' }}</td>
+                <td>{{ sections[ticket.id][-1].end_station if sections[ticket.id] else '' }}</td>
+                <td>{{ ticket.status }}</td>
+                <td>
+                    {% if ticket.status not in ['storniert', 'verbraucht'] %}
+                    <form action="{{ url_for('cancel_ticket', ticket_id=ticket.id) }}" method="post">
+                        <button type="submit">Stornieren</button>
+                    </form>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
 {% endblock %}
