@@ -154,7 +154,7 @@ def new_promotion():
 @login_required
 def delete_promotion(promotion_id):
     promotion = Promotion.query.get_or_404(promotion_id)
-    ticket_count = db.session.query(Ticket).filter(Ticket.promotion_id == promotion_id).count()
+    ticket_count = db.session.query(Section).filter(Section.promotion_id == promotion_id).count()
     if ticket_count > 0:
         flash(
             'Die Aktion kann nicht gelöscht werden, da sie bereits auf %d gekaufte Tickets angewandt wurde!' % ticket_count,
