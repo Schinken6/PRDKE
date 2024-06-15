@@ -1,0 +1,139 @@
+{% extends "base_admin.html" %}
+
+{% block content %}
+<style>
+    body {
+        font-family: Arial, sans-serif;
+    }
+
+    .form-container {
+        background: #ffffff;
+        padding: 20px;
+        max-width: 600px;
+        margin: 20px auto;
+        text-align: left;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+
+    .form-container h2 {
+        margin-bottom: 20px;
+        font-size: 24px;
+        text-align: center;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: bold;
+        color: #555;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        font-size: 16px;
+    }
+
+    .checkbox-container {
+        display: flex;
+        align-items: center;
+        margin-top: 10px;
+    }
+
+    .checkbox-container input[type="checkbox"] {
+        margin-right: 10px;
+        transform: scale(1.5);
+    }
+
+    .checkbox-container label {
+        font-weight: bold;
+        color: #555;
+    }
+
+    .form-actions {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .btn {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s ease;
+    }
+
+    .btn:hover {
+        background-color: #365f9c;
+    }
+</style>
+
+<div class="form-container">
+    <h2>Aktion bearbeiten</h2>
+    <form method="post">
+        {{ form.hidden_tag() }}
+
+        <div class="form-group">
+            <label for="name">Name</label>
+            {{ form.name(class_="custom-input", placeholder="Aktion Name") }}
+        </div>
+
+        <div class="form-group">
+            <label for="discount">Rabatt (%)</label>
+            {{ form.discount(class_="custom-input", placeholder="0") }}
+        </div>
+
+        <div class="form-group">
+            <label for="start_date">Startdatum</label>
+            {{ form.start_date(class_="custom-input") }}
+        </div>
+
+        <div class="form-group">
+            <label for="end_date">Enddatum</label>
+            {{ form.end_date(class_="custom-input") }}
+        </div>
+
+        <div class="form-group">
+            <label for="route">{{ form.route.label.text }}</label>
+            {{ form.route(class_="custom-select") }}
+        </div>
+
+        <div class="checkbox-container">
+            {{ form.global_promotion() }}
+            <label for="global_promotion">Globale Aktion</label>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn">Speichern</button>
+        </div>
+    </form>
+</div>
+<script>
+    document.getElementById('route').addEventListener('change', function() {
+        if (this.value !== "") {
+            document.getElementById('global_promotion').checked = false;
+        }
+    });
+
+    document.getElementById('global_promotion').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('route').value = "";
+        }
+    });
+</script>
+{% endblock %}

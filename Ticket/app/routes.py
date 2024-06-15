@@ -133,18 +133,28 @@ def new_promotion():
         form.route.choices = [(route['id'], f"{route['startbahnhof']} - {route['endbahnhof']}") for route in routes]
 
     if form.validate_on_submit():
-        promotion = Promotion(
-            name=form.name.data,
-            discount=form.discount.data,
-            start_date=form.start_date.data,
-            end_date=form.end_date.data,
-            route=form.route.data if form.route.data else None,
-            global_promotion=form.global_promotion.data
-        )
-        db.session.add(promotion)
-        db.session.commit()
-        flash('Neue Aktion erfolgreich erstellt!')
-        return redirect(url_for('admin'))
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+
+        if start_date < datetime.today().date():
+            flash('Das Startdatum darf nicht in der Vergangenheit liegen.', 'error')
+            form.global_promotion.checked = False  # soll im Fehlerfall wieder zurückgesetzt werden
+        elif end_date < start_date:
+            flash('Das Enddatum darf nicht vor dem Startdatum liegen.', 'error')
+            form.global_promotion.checked = False  # soll im Fehlerfall wieder zurückgesetzt werden
+        else:
+            promotion = Promotion(
+                name=form.name.data,
+                discount=form.discount.data,
+                start_date=start_date,
+                end_date=end_date,
+                route=form.route.data if form.route.data else None,
+                global_promotion=form.global_promotion.data
+            )
+            db.session.add(promotion)
+            db.session.commit()
+            flash('Neue Aktion erfolgreich erstellt!')
+            return redirect(url_for('admin'))
     else:
         print("Form validation failed")
         print(form.errors)
@@ -154,17 +164,58 @@ def new_promotion():
 @login_required
 def delete_promotion(promotion_id):
     promotion = Promotion.query.get_or_404(promotion_id)
-    ticket_count = db.session.query(Section).filter(Section.promotion_id == promotion_id).count()
-    if ticket_count > 0:
-        flash(
-            'Die Aktion kann nicht gelöscht werden, da sie bereits auf %d gekaufte Tickets angewandt wurde!' % ticket_count,
-            'error')
-        return redirect(url_for('admin'))
-    db.session.delete(promotion)
-    db.session.commit()
-    flash('Promotion erfolgreich gelöscht!', 'success')
+    if(check_promotion_editable(promotion_id, promotion)): #überprüfen ob schon Tickets verkauft wurden
+        db.session.delete(promotion)
+        db.session.commit()
+        flash('Promotion erfolgreich gelöscht!', 'success')
     return redirect(url_for('admin'))
 
+@app.route('/edit_promotion/<int:promotion_id>', methods=['GET', 'POST'])
+@login_required
+def edit_promotion(promotion_id):
+    promotion = Promotion.query.get_or_404(promotion_id)
+    if(check_promotion_editable(promotion_id, promotion)): #überprüfen ob schon Tickets verkauft wurden
+        form = NewPromotionForm(obj=promotion) # automatisch befüllen
+
+        # API-Aufruf, um die Strecken zu erhalten
+        response = requests.get('http://localhost:5001/Strecken')
+        if response.status_code == 200:
+            routes = response.json()
+            route_choices = [(route['id'], f"{route['startbahnhof']} - {route['endbahnhof']}") for route in routes]
+
+        if(form.route.data):
+                form.route.data = form.route.data
+        else:
+            route_choices.insert(0, (0, ""))
+            form.route.data = 0
+
+        form.route.choices = route_choices
+
+        if form.validate_on_submit():
+            start_date = form.start_date.data
+            end_date = form.end_date.data
+
+            if start_date < datetime.today().date():
+                flash('Das Startdatum darf nicht in der Vergangenheit liegen.', 'error')
+                form.global_promotion.checked = False  # soll im Fehlerfall wieder zurückgesetzt werden
+            elif end_date < start_date:
+                flash('Das Enddatum darf nicht vor dem Startdatum liegen.', 'error')
+                form.global_promotion.checked = False  # soll im Fehlerfall wieder zurückgesetzt werden
+            else:
+                promotion.name = form.name.data
+                promotion.discount = form.discount.data
+                promotion.start_date = start_date
+                promotion.end_date = end_date
+                promotion.route = form.route.data if not form.global_promotion.data else None
+                promotion.global_promotion = form.global_promotion.data
+
+                db.session.commit()
+                flash('Aktion erfolgreich bearbeitet!', 'success')
+                return redirect(url_for('admin'))
+    else:
+        return redirect(url_for('admin'))
+
+    return render_template('edit_promotion.html', title='Aktion bearbeiten', form=form, promotion=promotion)
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
@@ -184,6 +235,14 @@ def edit_profile():
         return redirect(url_for('edit_profile'))
     return render_template('edit_profile.html', form=form)
 
+def check_promotion_editable(promotion_id, promotion):
+    ticket_count = db.session.query(Section).filter(Section.promotion_id == promotion_id).count()
+    if ticket_count > 0:
+        flash(
+            'Die Aktion kann nicht editiert bzw. gelöscht werden, da sie bereits auf %d gekaufte Tickets angewandt wurde!' % ticket_count,
+            'error')
+        return False
+    return True
 
 @app.route('/buyticket', methods=['GET', 'POST']) # Wurde nur für technischen Durchstich zur Veranschauligung der Persistierung einer Entität verwendet
 @login_required
