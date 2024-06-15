@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from flask import session, request, render_template, flash, redirect, url_for, jsonify
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, BuyTicketForm, NewPromotionForm
@@ -413,8 +413,10 @@ def find_transfer(schedules, form_start_station, form_end_station, start_time, e
         return jsonify({'error': 'Die Fahrt ist in dieser Konstellation nicht möglich.'}), 400
 
 def apply_best_promotion(route_id, price):
+    today = date.today()
     promotions = db.session.query(Promotion).filter(
-        (Promotion.route == route_id) | (Promotion.global_promotion == True)
+        ((Promotion.route == route_id) | (Promotion.global_promotion == True)) &
+        (Promotion.start_date <= today) & (Promotion.end_date >= today)
     ).all()
     print(promotions)
 
@@ -862,12 +864,12 @@ def api_railwayschedules():
             "time": "12:00",
             "priceadjust_percent": 15,
             "railwayscheduleid": 2,
-            "routeid": 4,
-            "startstation": "Linz",
-            "endstation": "Graz",
+            "routeid": 2,
+            "startstation": "Linz HBF",
+            "endstation": "Graz HBF",
             "stationplan": [
                 {
-                    "start": "Linz",
+                    "start": "Linz HBF",
                     "end": "Steyr Bahnhof",
                     "nutzungsentgeld": 8,
                     "duration": 40
@@ -880,7 +882,7 @@ def api_railwayschedules():
                 },
                 {
                     "start": "Kapfenberg",
-                    "end": "Graz",
+                    "end": "Graz HBF",
                     "nutzungsentgeld": 10,
                     "duration": 50
                 }
