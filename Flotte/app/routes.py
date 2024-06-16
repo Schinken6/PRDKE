@@ -187,18 +187,18 @@ def get_railcars():
     railcars = Railcar.query.all()
     return jsonify([railcar.serialize() for railcar in railcars])
 
-@app.route('/api/trainID/1', methods=['GET'])
+@app.route('/api/trainID/RJ101', methods=['GET'])
 def get_passenger_seats_1():
     return jsonify({'numberOfSeats': 200})
 
-@app.route('/api/trainID/2', methods=['GET'])
+@app.route('/api/trainID/RJ102', methods=['GET'])
 def get_passenger_seats_2():
     return jsonify({'numberOfSeats': 250})
 
-@app.route('/api/trainID/3', methods=['GET'])
+@app.route('/api/trainID/RJ103', methods=['GET'])
 def get_passenger_seats_3():
     return jsonify({'numberOfSeats': 220})
 
-@app.route('/api/trainID/4', methods=['GET'])
+@app.route('/api/trainID/RJ104', methods=['GET'])
 def get_passenger_seats_4():
     return jsonify({'numberOfSeats': 209})
