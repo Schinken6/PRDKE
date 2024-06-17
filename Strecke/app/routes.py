@@ -6,8 +6,8 @@ import sqlalchemy as sa
 from app import db
 from app.models import User, Segment, Warning, Route
 from urllib.parse import urlsplit
-from app.models import Station, Address, routesegments
-from sqlalchemy.orm import aliased
+from app.models import Station, Address, routesegments, Route
+from sqlalchemy.orm import aliased, joinedload
 from datetime import datetime
 
 
@@ -313,6 +313,41 @@ def warningDelete(warning_id):
     db.session.commit()
     flash('Warning has been deleted!', 'success')
     return redirect(url_for('warnings'))
+
+@app.route('/routes', methods=['GET'])
+def routes_overview():
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+    routes = db.session.query(
+        Route,
+        StartStation.name.label('start_station_name'),
+        EndStation.name.label('end_station_name')
+    ).join(
+        StartStation, Route.startStation == StartStation.id
+    ).join(
+        EndStation, Route.endStation == EndStation.id
+    ).all()
+
+    return render_template('routes.html', routes=routes)
+
+@app.route('/routeNew', methods=['GET', 'POST'])
+def routeNew():
+    # This route will handle the creation of a new route
+    # You will need to implement the logic for creating a new route
+    return render_template('route_new.html')
+
+@app.route('/routeEdit/<int:route_id>', methods=['GET', 'POST'])
+def routeEdit(route_id):
+    # This route will handle the editing of an existing route
+    # You will need to implement the logic for editing a route
+    return render_template('route_edit.html', route_id=route_id)
+
+@app.route('/routeDelete/<int:route_id>', methods=['POST'])
+def routeDelete(route_id):
+    # This route will handle the deletion of an existing route
+    # You will need to implement the logic for deleting a route
+    return redirect(url_for('routes_overview'))
 
 
 #############################API#############################
@@ -624,3 +659,4 @@ def get_route_warnings_between_stations(route_id, start_station_name, end_statio
             warnings_list.append(warning_data)
 
     return jsonify(warnings_list)
+
