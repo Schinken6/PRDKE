@@ -331,12 +331,61 @@ def routes_overview():
 
     return render_template('routes.html', routes=routes)
 
-@app.route('/routeNew', methods=['GET', 'POST'])
-def routeNew():
-    # This route will handle the creation of a new route
-    # You will need to implement the logic for creating a new route
-    return render_template('route_new.html')
 
+
+
+
+from flask import session
+
+@app.route('/routeNew', methods=['GET', 'POST'])
+@app.route('/routeNew/<int:segment_id>', methods=['GET', 'POST'])  # New route to handle adding or removing a segment
+def routeNew(segment_id=None):
+    if 'selected_segments' not in session:
+        session['selected_segments'] = []
+
+    remove = request.args.get('remove', default=False, type=bool)
+
+    if segment_id:
+        if remove:
+            # If remove is True, remove the segment from the selected_segments list
+            session['selected_segments'].remove(segment_id)
+            session.modified = True
+        else:
+            # If remove is False, add the segment to the selected_segments list
+            segment = Segment.query.get(segment_id)
+            if segment:
+                session['selected_segments'].append(segment_id)
+                session.modified = True
+
+    if request.method == 'POST':
+        # Get form data
+        name = request.form.get('name')
+        trackWidth = request.form.get('trackWidth')
+
+        # Create new Route
+        new_route = Route(name=name, trackWidth=trackWidth)
+        for segment_id in session['selected_segments']:
+            segment = Segment.query.get(segment_id)
+            new_route.sections.append(segment)  # Add selected segments to the route
+
+        # Save new Route to database
+        db.session.add(new_route)
+        db.session.commit()
+
+        # Clear the selected segments from the session
+        session.pop('selected_segments', None)
+
+        return redirect(url_for('routes_overview'))
+
+    # Get all segments
+    if session['selected_segments']:
+        last_added_segment = Segment.query.get(session['selected_segments'][-1])
+        segments = Segment.query.filter(Segment.startStation == last_added_segment.endStation).all()
+    else:
+        segments = Segment.query.all()
+
+    selected_segments = [Segment.query.get(id) for id in session['selected_segments']]
+    return render_template('route_new.html', segments=segments, selected_segments=selected_segments)
 @app.route('/routeEdit/<int:route_id>', methods=['GET', 'POST'])
 def routeEdit(route_id):
     # This route will handle the editing of an existing route
