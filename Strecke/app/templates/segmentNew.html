@@ -3,7 +3,6 @@
 {% block content %}
     <h1>Create New Segment</h1>
     <form method="POST">
-        {{ form.hidden_tag() }}
 
 
         <div class="form-group">
@@ -13,22 +12,27 @@
         <div class="form-group">
             {{ form.endStation.label }} {{ form.endStation(class="form-control") }}
         </div>
+        <div class="form-group">
         <p>
             {{ form.trackWidth.label }}<br>
-            {{ form.trackWidth() }}
+            {{ form.trackWidth(class="form-control") }}
         </p>
+        </div>
+
+        <div class="form-group">
         <p>
             {{ form.length.label }}<br>
-            {{ form.length() }}
+            {{ form.length(class="form-control") }}
         </p>
-        <p>
+        </div>
+      <div class="form-group">
             {{ form.maxSpeed.label }}<br>
-            {{ form.maxSpeed() }}
-        </p>
-        <p>
+            {{ form.maxSpeed(class="form-control") }}
+        </div>
+        <div class="form-group">
             {{ form.price.label }}<br>
-            {{ form.price() }}
-        </p>
-        <p>{{ form.submit() }}</p>
+            {{ form.price(class="form-control") }}
+        </div>
+        <p>{{ form.submit(class="btn btn-primary") }}</p>
     </form>
 {% endblock %}

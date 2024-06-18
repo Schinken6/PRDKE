@@ -364,6 +364,14 @@ def routeNew(segment_id=None):
 
         # Create new Route
         new_route = Route(name=name, trackWidth=trackWidth)
+
+        if session['selected_segments']:
+            first_segment = Segment.query.get(session['selected_segments'][0])
+            last_segment = Segment.query.get(session['selected_segments'][-1])
+
+            new_route.startStation = first_segment.startStation
+            new_route.endStation = last_segment.endStation
+
         for segment_id in session['selected_segments']:
             segment = Segment.query.get(segment_id)
             new_route.sections.append(segment)  # Add selected segments to the route
@@ -376,6 +384,17 @@ def routeNew(segment_id=None):
         session.pop('selected_segments', None)
 
         return redirect(url_for('routes_overview'))
+
+    # Get all segments
+    if session['selected_segments']:
+        last_added_segment = Segment.query.get(session['selected_segments'][-1])
+        segments = Segment.query.filter(Segment.startStation == last_added_segment.endStation).all()
+    else:
+        segments = Segment.query.all()
+
+    selected_segments = [Segment.query.get(id) for id in session['selected_segments']]
+    return render_template('route_new.html', segments=segments, selected_segments=selected_segments)
+
 
     # Get all segments
     if session['selected_segments']:

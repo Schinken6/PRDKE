@@ -3,7 +3,7 @@
 {% block content %}
     <h1>Warnings Overview</h1>
 
-    <table class="table-warning">
+    <table class="table-station">
         <thead>
             <tr>
                 <th>Warning ID</th>
@@ -12,7 +12,7 @@
                 <th>Valid From</th>
                 <th>Valid To</th>
                 {% if current_user.is_authenticated and current_user.isAdmin %}
-                <th></th>
+                <th>Actions</th>
                 {% endif %}
             </tr>
         </thead>
