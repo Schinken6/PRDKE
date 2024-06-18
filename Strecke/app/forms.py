@@ -4,6 +4,7 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField, Selec
 from wtforms.validators import DataRequired, ValidationError, Email, EqualTo
 from .models import Station
 
+
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
@@ -37,7 +38,7 @@ class UserForm(FlaskForm):
 class SegmentForm(FlaskForm):
     startStation = SelectField('Start Station', coerce=int, validators=[DataRequired()])
     endStation = SelectField('End Station', coerce=int, validators=[DataRequired()])
-    trackWidth = IntegerField('Track Width', validators=[DataRequired()])
+    trackWidth = SelectField('Track Width', choices=[('1000', '1000'), ('1435', '1435')], coerce=int)
     length = StringField('Length', validators=[DataRequired()])
     maxSpeed = IntegerField('Max Speed', validators=[DataRequired()])
     price = StringField('Price', validators=[DataRequired()])
@@ -48,13 +49,10 @@ class SegmentForm(FlaskForm):
         self.startStation.choices = [(station.id, station.name) for station in Station.query.all()]
         self.endStation.choices = [(station.id, station.name) for station in Station.query.all()]
 
-
     def validate_endStation(self, endStation):
         if self.startStation.data == endStation.data:
             raise ValidationError('Start station cannot be the same as the end station.')
-
-
-
+            flash('Start station cannot be the same as the end station.')
 
 
 class WarningForm(FlaskForm):
@@ -64,3 +62,19 @@ class WarningForm(FlaskForm):
     validTo = DateField('Valid To', format='%Y-%m-%d', validators=[DataRequired()])
     segment = SelectField('Segment', coerce=int)
     submit = SubmitField('Create')
+
+
+class RouteForm(FlaskForm):
+    name = StringField('Route Name', validators=[DataRequired()])
+    startStation = SelectField('Start Station', coerce=int, validators=[DataRequired()])
+    endStation = SelectField('End Station', coerce=int, validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+    def __init__(self, *args, **kwargs):
+        super(RouteForm, self).__init__(*args, **kwargs)
+        self.startStation.choices = [(station.id, station.name) for station in Station.query.all()]
+        self.endStation.choices = [(station.id, station.name) for station in Station.query.all()]
+
+    def validate_endStation(self, endStation):
+        if self.startStation.data == endStation.data:
+            raise ValidationError('Start station cannot be the same as the end station.')

@@ -1,6 +1,6 @@
 from flask import render_template, flash, redirect, url_for, request, jsonify
 from app import app
-from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm, WarningForm
+from app.forms import LoginForm, TrainstationForm, UserForm, SegmentForm, WarningForm, RouteForm
 from flask_login import current_user, login_user, logout_user, login_required
 import sqlalchemy as sa
 from app import db
@@ -217,7 +217,7 @@ def segmentNew():
         flash('New segment has been created!', 'success')
         return redirect(url_for('segments'))
     else:
-        print(form.errors)  # Print form errors
+        flash(form.errors)  # Print form errors from validating form
     return render_template('segmentNew.html', title='New Segment', form=form, stations=stations)
 
 
@@ -237,6 +237,9 @@ def segmentEdit(segment_id):
         db.session.commit()
         flash('Segment has been updated!', 'success')
         return redirect(url_for('segments'))
+    else:
+        print(form.errors)
+
     form.startStation.data = segment.startStation
     form.endStation.data = segment.endStation
     return render_template('segmentNew.html', title='Edit Segment', form=form, stations=stations)
@@ -340,28 +343,30 @@ from flask import session
 @app.route('/routeNew', methods=['GET', 'POST'])
 @app.route('/routeNew/<int:segment_id>', methods=['GET', 'POST'])  # New route to handle adding or removing a segment
 def routeNew(segment_id=None):
+
     if 'selected_segments' not in session:
         session['selected_segments'] = []
 
     remove = request.args.get('remove', default=False, type=bool)
 
-    if segment_id:
-        if remove:
-            # If remove is True, remove the segment from the selected_segments list
-            session['selected_segments'].remove(segment_id)
-            session.modified = True
-        else:
-            # If remove is False, add the segment to the selected_segments list
-            segment = Segment.query.get(segment_id)
-            if segment:
-                session['selected_segments'].append(segment_id)
+    if(request.method == 'GET'):
+        if segment_id:
+            if remove:
+                # If remove is True, remove the segment from the selected_segments list
+                session['selected_segments'].remove(segment_id)
                 session.modified = True
+            else:
+                # If remove is False, add the segment to the selected_segments list
+                segment = Segment.query.get(segment_id)
+                if segment:
+                    session['selected_segments'].append(segment_id)
+                    session.modified = True
 
     if request.method == 'POST':
         # Get form data
         name = request.form.get('name')
         trackWidth = request.form.get('trackWidth')
-
+        print (session['selected_segments'])
         # Create new Route
         new_route = Route(name=name, trackWidth=trackWidth)
 
@@ -391,20 +396,12 @@ def routeNew(segment_id=None):
         segments = Segment.query.filter(Segment.startStation == last_added_segment.endStation).all()
     else:
         segments = Segment.query.all()
-
+    new_route = Route()
+    form = RouteForm(obj=new_route)
     selected_segments = [Segment.query.get(id) for id in session['selected_segments']]
-    return render_template('route_new.html', segments=segments, selected_segments=selected_segments)
+    return render_template('route_new.html', form=form , segments=segments, selected_segments=selected_segments)
 
 
-    # Get all segments
-    if session['selected_segments']:
-        last_added_segment = Segment.query.get(session['selected_segments'][-1])
-        segments = Segment.query.filter(Segment.startStation == last_added_segment.endStation).all()
-    else:
-        segments = Segment.query.all()
-
-    selected_segments = [Segment.query.get(id) for id in session['selected_segments']]
-    return render_template('route_new.html', segments=segments, selected_segments=selected_segments)
 @app.route('/routeEdit/<int:route_id>', methods=['GET', 'POST'])
 def routeEdit(route_id):
     # This route will handle the editing of an existing route
@@ -412,11 +409,19 @@ def routeEdit(route_id):
     return render_template('route_edit.html', route_id=route_id)
 
 @app.route('/routeDelete/<int:route_id>', methods=['POST'])
+@login_required
 def routeDelete(route_id):
-    # This route will handle the deletion of an existing route
-    # You will need to implement the logic for deleting a route
-    return redirect(url_for('routes_overview'))
+    # Fetch the route from the database
+    route = Route.query.get(route_id)
+    if route is None:
+        flash('Route not found.')
+        return redirect(url_for('routes_overview'))
+    # Delete the route
+    db.session.delete(route)
+    db.session.commit()
 
+    flash('Route and its associations have been deleted!', 'success')
+    return redirect(url_for('routes_overview'))
 
 #############################API#############################
 

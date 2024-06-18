@@ -3,6 +3,7 @@
 {% block content %}
     <h1>New Route</h1>
     <form method="POST">
+        {{ form.hidden_tag() }}
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         <label for="trackWidth">Track Width:</label>
