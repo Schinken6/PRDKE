@@ -13,8 +13,8 @@
                 <th>Max Speed</th>
                 <th>Price</th>
                 {% if current_user.is_authenticated and current_user.isAdmin %}
-                <th></th>
-                <th></th>
+                <th>Actions</th>
+
                 {% endif %}
             </tr>
         </thead>
@@ -27,15 +27,15 @@
                     <td>{{ segment.length }}</td>
                     <td>{{ segment.maxSpeed }}</td>
                     <td>{{ segment.price }}</td>
+
                     {% if current_user.is_authenticated and current_user.isAdmin %}
+
                     <td>
-                       <form action="{{ url_for('segmentDelete', segment_id=segment.id) }}" method="post">
-                            <input type="submit" value="Delete" class="edit-button">
-                        </form>
-                    </td>
-                    <td>
-                        <form action="{{ url_for('segmentEdit', segment_id=segment.id) }}" method="post">
+                        <form class="button-form" action="{{ url_for('segmentEdit', segment_id=segment.id) }}" method="post">
                             <input type="submit" value="Edit" class="edit-button">
+                        </form>
+                    <form class="button-form" action="{{ url_for('segmentDelete', segment_id=segment.id) }}" method="post">
+                            <input type="submit" value="Delete" class="edit-button">
                         </form>
                     </td>
                     {% endif %}

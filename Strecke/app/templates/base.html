@@ -132,6 +132,10 @@
     margin-bottom: 15px;
 }
 
+.button-form {
+    display: inline-block;
+}
+
 .form-control {
     display: block;
     width: 100%;
@@ -179,6 +183,7 @@
             {% else %}
             <a href="{{ url_for('trainstation') }}">Bahnhofübersicht</a>
             <a href="{{ url_for('segments') }}">Abschnittübersicht</a>
+            <a href="{{ url_for('routes_overview') }}">Streckenübersicht</a>
             <a href="{{ url_for('warnings') }}">Warnungen</a>
                  {% if current_user.is_authenticated and current_user.isAdmin %}
                 <a href="{{ url_for('user') }}">User Übersicht</a>

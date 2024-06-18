@@ -3,46 +3,45 @@
 {% block content %}
     <h1>Bahnhofübersicht</h1>
 
-<table class="table-station" >
+    <table class="table-station">
         <thead>
-            <tr>
-                   <th>ID</th>
-                <th>Name</th>
-                <th>Adresse</th>
-                <th>zipcode</th>
-                  {% if current_user.is_authenticated and current_user.isAdmin %}
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Adresse</th>
+            <th>zipcode</th>
+            {% if current_user.is_authenticated and current_user.isAdmin %}
 
-                <th></th>
-                <th></th>
-                {% endif %}
-            </tr>
+                <th>Actions</th>
+
+            {% endif %}
+        </tr>
         </thead>
         <tbody>
-            {% for station, address in stations %}
-                <tr>
-                    <td >
-                            ({{ station.id }})
-                    </td>
-                    <td>{{ station.name }}</td>
-                    <td>{{ address.street }} {{ address.no }}, {{ address.city }}</td>
-                    <td>{{ address.zipcode }}</td>
-                      {% if current_user.is_authenticated and current_user.isAdmin %}
+        {% for station, address in stations %}
+            <tr>
+                <td>
+                    ({{ station.id }})
+                </td>
+                <td>{{ station.name }}</td>
+                <td>{{ address.street }} {{ address.no }}, {{ address.city }}</td>
+                <td>{{ address.zipcode }}</td>
+                {% if current_user.is_authenticated and current_user.isAdmin %}
                     <td>
-            <form action="{{ url_for('trainstationDelete', station_id=station.id) }}" method="post">
-                <input type="submit" value="Löschen" class="edit-button">
-            </form>
-        </td>
-        <td>
-            <form action="{{ url_for('trainstationEdit', station_id=station.id) }}" method="post">
-                <input type="submit" value="Bearbeiten" class="edit-button">
-            </form>
-        </td>
-                         {% endif %}
-                </tr>
-            {% endfor %}
+                        <form class="button-form" action="{{ url_for('trainstationEdit', station_id=station.id) }}" method="post">
+                            <input type="submit" value="Edit" class="edit-button">
+                        </form>
+                    <form class="button-form" action="{{ url_for('trainstationDelete', station_id=station.id) }}" method="post">
+                            <input type="submit" value="Delete" class="edit-button">
+                        </form>
+                    </td>
+
+                {% endif %}
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
-{% if current_user.is_authenticated and current_user.isAdmin %}
-    <a class="create_button" href="{{ url_for('trainstationNew') }}">Neu</a>
-{% endif %}
+    {% if current_user.is_authenticated and current_user.isAdmin %}
+        <a class="create_button" href="{{ url_for('trainstationNew') }}">Neu</a>
+    {% endif %}
 {% endblock %}
