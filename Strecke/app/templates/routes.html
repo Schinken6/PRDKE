@@ -1,34 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Routes Overview</h1>
-    <table class="table-station">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Start Station</th>
-                <th>End Station</th>
-                <th>Track Width</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for route, start_station_name, end_station_name in routes %}
-                <tr>
-                    <td>{{ route.name }}</td>
-                    <td>{{ start_station_name }}</td>
-                    <td>{{ end_station_name }}</td>
-                    <td>{{ route.trackWidth }}</td>
-                    <td>
-                        <a href="{{ url_for('routeEdit', route_id=route.id) }}" class="edit-button">Edit</a>
-                        <form action="{{ url_for('routeDelete', route_id=route.id) }}" method="POST" style="display: inline-block;">
-                            <input type="submit" value="Delete" class="edit-button">
-                        </form>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-        <a href="{{ url_for('routeNew') }}" class="btn btn-primary">New</a>
+<h1>Routes Overview</h1>
+<table class="table-station">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Start Station</th>
+        <th>End Station</th>
+        <th>Track Width</th>
+        {% if current_user.is_authenticated and current_user.isAdmin %}
+
+        <th>Actions</th>
+        {% endif %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for route, start_station_name, end_station_name in routes %}
+        <tr>
+            <td>{{ route.name }}</td>
+            <td>{{ start_station_name }}</td>
+            <td>{{ end_station_name }}</td>
+            <td>{{ route.trackWidth }}</td>
+            <td>
+                {% if current_user.is_authenticated and current_user.isAdmin %}
+                    <a href="{{ url_for('routeEdit', route_id=route.id) }}" class="edit-button">Edit</a>
+                    <form action="{{ url_for('routeDelete', route_id=route.id) }}" method="POST"
+                          style="display: inline-block;">
+                        <input type="submit" value="Delete" class="edit-button">
+                    </form>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<a href="{{ url_for('routeNew') }}" class="btn btn-primary">New</a>
 
 {% endblock %}
