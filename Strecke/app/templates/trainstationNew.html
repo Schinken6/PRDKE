@@ -3,6 +3,7 @@
 {% block content %}
     <h1>Bahnhof anlegen</h1>
     <form method="POST">
+        {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.name.label }} {{ form.name(class="form-control") }}
         </div>
