@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Bahnhofübersicht</h1>
+    <h1>Trainstation Overview</h1>
 
     <table class="table-station">
 
@@ -9,8 +9,8 @@
         <tr>
             <th>ID</th>
             <th>Name</th>
-            <th>Adresse</th>
-            <th>zipcode</th>
+            <th>Adress</th>
+            <th>Zipcode</th>
             {% if current_user.is_authenticated and current_user.isAdmin %}
 
                 <th>Actions</th>
