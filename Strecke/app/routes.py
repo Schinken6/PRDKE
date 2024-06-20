@@ -11,7 +11,6 @@ from sqlalchemy.orm import aliased, joinedload
 from datetime import datetime
 
 
-
 @app.route('/')
 @app.route('/index')
 @login_required
@@ -83,9 +82,11 @@ def trainstationNew():
 @app.route('/trainsstationEdit/<station_id>', methods=['GET', 'POST'])
 @login_required
 def trainstationEdit(station_id):
+    # search for station to Edit
     station = Station.query.get(station_id)
     address = Address.query.get(station.address_id)
     form = TrainstationForm()
+    # Get data from Form
     if form.validate_on_submit():
         address.street = form.street.data
         address.no = form.no.data
@@ -96,9 +97,10 @@ def trainstationEdit(station_id):
         db.session.merge(station)
         print(address.city)
         print(form.city.data)
-        db.session.commit()  # Commit the changes
+        db.session.commit()
         flash('Änderungen gespeichert!')
         return redirect(url_for('trainstation'))
+    # Set data to Form
     form = TrainstationForm(obj=station)
     form.street.data = address.street
     form.no.data = address.no
@@ -118,26 +120,6 @@ def trainstationDelete(station_id):
     db.session.delete(deleteaddress)
     db.session.commit()
     return redirect(url_for('trainstation'))
-
-
-@app.route('/Bahnhof/all')
-def all_stations():
-    stations = Station.query.all()
-    stations_list = []
-
-    for station in stations:
-        station_dict = {
-            'id': station.id,
-            'name': station.name,
-            'street': station.street,
-            'no': station.no,
-            'zipcode': station.zipcode,
-            'city': station.city,
-            'country': station.country
-        }
-        stations_list.append(station_dict)
-
-    return jsonify(stations_list)
 
 
 @app.route('/user')
@@ -249,6 +231,10 @@ def segmentEdit(segment_id):
 @login_required
 def segmentDelete(segment_id):
     segment = Segment.query.get_or_404(segment_id)
+    routeSegment = db.session.query(routesegments).filter_by(segment_id=segment_id).first()
+    if(routeSegment is not None):
+        flash('Segment is used in a route!', 'error')
+        return redirect(url_for('segments'))
     db.session.delete(segment)
     db.session.commit()
     flash('Segment has been deleted!', 'success')
@@ -274,8 +260,6 @@ def segments():
     return render_template('segment.html', title='Segments', segments=segments)
 
 
-
-
 @app.route('/warnings', methods=['GET'])
 @login_required
 def warnings():
@@ -283,17 +267,13 @@ def warnings():
     return render_template('warnings.html', title='Warnings Overview', warnings=warnings)
 
 
-
-
-
-
-
 @app.route('/warningNew', methods=['GET', 'POST'])
 @login_required
 def warningNew():
     form = WarningForm()
     segments = Segment.query.order_by('startStation').all()
-    form.segment.choices = [(s.id, f'{Station.query.get(s.startStation).name} - {Station.query.get(s.endStation).name}') for s in segments]
+    form.segment.choices = [(s.id, f'{Station.query.get(s.startStation).name} - {Station.query.get(s.endStation).name}')
+                            for s in segments]
     if form.validate_on_submit():
         validFrom = datetime.strptime(request.form['validFrom'], '%Y-%m-%d').date()
         validTo = datetime.strptime(request.form['validTo'], '%Y-%m-%d').date()
@@ -317,7 +297,9 @@ def warningDelete(warning_id):
     flash('Warning has been deleted!', 'success')
     return redirect(url_for('warnings'))
 
+
 @app.route('/routes', methods=['GET'])
+@login_required
 def routes_overview():
     StartStation = aliased(Station)
     EndStation = aliased(Station)
@@ -335,17 +317,16 @@ def routes_overview():
     return render_template('routes.html', routes=routes)
 
 
-
-
-
 from flask import session
 
 from sqlalchemy.orm import aliased
 
+
 @app.route('/routeNew', methods=['GET', 'POST'])
-@app.route('/routeNew/<int:segment_id>', methods=['GET', 'POST'])  # New route to handle adding or removing a segment
+@app.route('/routeNew/<int:segment_id>', methods=['GET', 'POST'])
+@login_required
 def routeNew(segment_id=None):
-    # Aliased for multiple join on the same table (Station)
+    # Aliases for Station joins
     StartStation = aliased(Station)
     EndStation = aliased(Station)
 
@@ -354,14 +335,14 @@ def routeNew(segment_id=None):
 
     remove = request.args.get('remove', default=False, type=bool)
 
-    if(request.method == 'GET'):
+    if (request.method == 'GET'):
         if segment_id:
             if remove:
-                # If remove is True, remove the segment from the selected_segments list
+                # If remove is True, remove the segment from the selected_segments
                 session['selected_segments'].remove(segment_id)
                 session.modified = True
             else:
-                # If remove is False, add the segment to the selected_segments list
+                # If remove is False, add the segment to the selected_segments
                 segment = Segment.query.get(segment_id)
                 if segment:
                     session['selected_segments'].append(segment_id)
@@ -371,8 +352,9 @@ def routeNew(segment_id=None):
         # Get form data
         name = request.form.get('name')
         trackWidth = request.form.get('trackWidth')
-        print (session['selected_segments'])
-        # Create new Route
+        print(session['selected_segments'])
+
+        # Get Route from Form and Session Data
         new_route = Route(name=name, trackWidth=trackWidth)
 
         if session['selected_segments']:
@@ -384,13 +366,12 @@ def routeNew(segment_id=None):
 
         for segment_id in session['selected_segments']:
             segment = Segment.query.get(segment_id)
-            new_route.sections.append(segment)  # Add selected segments to the route
+            new_route.sections.append(segment)
 
-        # Save new Route to database
+        # Save new Route
         db.session.add(new_route)
         db.session.commit()
 
-        # Clear the selected segments from the session
         session.pop('selected_segments', None)
 
         return redirect(url_for('routes_overview'))
@@ -408,7 +389,7 @@ def routeNew(segment_id=None):
             EndStation, Segment.endStation == EndStation.id
         ).filter(
             Segment.startStation == last_added_segment.endStation,
-            Segment.trackWidth == last_added_segment.trackWidth  # Add this line
+            Segment.trackWidth == last_added_segment.trackWidth
         ).all()
     else:
         segments = db.session.query(
@@ -420,7 +401,6 @@ def routeNew(segment_id=None):
         ).join(
             EndStation, Segment.endStation == EndStation.id
         ).all()
-
 
     new_route = Route()
     form = RouteForm(obj=new_route)
@@ -436,18 +416,125 @@ def routeNew(segment_id=None):
         Segment.id == id
     ).first() for id in session['selected_segments']]
 
-    return render_template('route_new.html', form=form , segments=segments, selected_segments=selected_segments)
+    return render_template('route_new.html', form=form, segments=segments, selected_segments=selected_segments)
+
 
 @app.route('/routeEdit/<int:route_id>', methods=['GET', 'POST'])
-def routeEdit(route_id):
-    # This route will handle the editing of an existing route
-    # You will need to implement the logic for editing a route
-    return render_template('route_edit.html', route_id=route_id)
+@app.route('/routeEdit/<int:route_id>/<int:segment_id>', methods=['GET', 'POST'])
+@login_required
+def routeEdit(route_id, segment_id=None):
+    # Aliases for Station joins
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
+
+
+
+    if 'selected_segments' not in session:
+        session['selected_segments'] = []
+
+    remove = request.args.get('remove', default=False, type=bool)
+
+    if (request.method == 'GET'):
+        if segment_id:
+            if remove:
+                # If remove is True, remove the segment from the selected_segments
+                session['selected_segments'].remove(segment_id)
+                session.modified = True
+            else:
+                # If remove is False, add the segment to the selected_segments
+                segment = Segment.query.get(segment_id)
+                if segment:
+                    session['selected_segments'].append(segment_id)
+                    session.modified = True
+
+    if request.method == 'POST':
+        # Get form data
+        name = request.form.get('name')
+        trackWidth = request.form.get('trackWidth')
+        print(session['selected_segments'])
+
+        # Get Route from Form and Session Data
+        new_route = Route(name=name, trackWidth=trackWidth)
+
+        if session['selected_segments']:
+            first_segment = Segment.query.get(session['selected_segments'][0])
+            last_segment = Segment.query.get(session['selected_segments'][-1])
+
+            new_route.startStation = first_segment.startStation
+            new_route.endStation = last_segment.endStation
+
+        for segment_id in session['selected_segments']:
+            segment = Segment.query.get(segment_id)
+            new_route.sections.append(segment)
+
+        # Save new Route
+        db.session.save(new_route)
+        db.session.commit()
+
+        # Clear the selected segments from  session
+        session.pop('selected_segments', None)
+
+        return redirect(url_for('routes_overview'))
+
+    if (route_id and segment_id is None):
+        route = Route.query.get(route_id)
+        if route is None:
+            flash('Route not found.')
+            return redirect(url_for('routes_overview'))
+        form = RouteForm(obj=route)
+        form.trackWidth = route.trackWidth
+        form.name = route.name
+        route_segments = db.session.query(routesegments).filter(route_id==route_id).all()
+        for route_segment in route_segments:
+            segment = Segment.query.get(route_segment.segment_id)
+            session['selected_segments'].append(segment)
+
+    # Get all segments
+    if session['selected_segments']:
+        last_added_segment = Segment.query.get(session['selected_segments'][-1])
+        segments = db.session.query(
+            Segment,
+            StartStation.name.label('start_station_name'),
+            EndStation.name.label('end_station_name')
+        ).join(
+            StartStation, Segment.startStation == StartStation.id
+        ).join(
+            EndStation, Segment.endStation == EndStation.id
+        ).filter(
+            Segment.startStation == last_added_segment.endStation,
+            Segment.trackWidth == last_added_segment.trackWidth
+        ).all()
+    else:
+        segments = db.session.query(
+            Segment,
+            StartStation.name.label('start_station_name'),
+            EndStation.name.label('end_station_name')
+        ).join(
+            StartStation, Segment.startStation == StartStation.id
+        ).join(
+            EndStation, Segment.endStation == EndStation.id
+        ).all()
+
+    new_route = Route()
+    form = RouteForm(obj=new_route)
+    selected_segments = [db.session.query(
+        Segment,
+        StartStation.name.label('start_station_name'),
+        EndStation.name.label('end_station_name')
+    ).join(
+        StartStation, Segment.startStation == StartStation.id
+    ).join(
+        EndStation, Segment.endStation == EndStation.id
+    ).filter(
+        Segment.id == id
+    ).first() for id in session['selected_segments']]
+
+    return render_template('route_edit.html', form=form, segments=segments, selected_segments=selected_segments, route_id=route_id)
 
 @app.route('/routeDelete/<int:route_id>', methods=['POST'])
 @login_required
 def routeDelete(route_id):
-    # Fetch the route from the database
+    # Get route from the database
     route = Route.query.get(route_id)
     if route is None:
         flash('Route not found.')
@@ -459,7 +546,28 @@ def routeDelete(route_id):
     flash('Route and its associations have been deleted!', 'success')
     return redirect(url_for('routes_overview'))
 
+
 #############################API#############################
+
+@app.route('/Bahnhof/all')
+def all_stations():
+    stations = Station.query.all()
+    stations_list = []
+    #
+    for station in stations:
+        station_dict = {
+            'id': station.id,
+            'name': station.name,
+            'street': station.street,
+            'no': station.no,
+            'zipcode': station.zipcode,
+            'city': station.city,
+            'country': station.country
+        }
+        stations_list.append(station_dict)
+
+    return jsonify(stations_list)
+
 
 @app.route('/Strecke/<int:route_id>', methods=['GET'])
 def get_route(route_id):
@@ -596,6 +704,7 @@ def get_route_by_station(start_station, end_station):
 
     return jsonify(route_data)
 
+
 @app.route('/Strecke/lite', methods=['GET'])
 def get_lite_routes():
     # Aliased for multiple join on the same table (Station)
@@ -728,6 +837,7 @@ def get_segment_warnings(segment_id):
 
     return jsonify(warnings_list)
 
+
 @app.route('/StreckeVonBis/<int:route_id>/<start_station_name>/<end_station_name>/Warnungen', methods=['GET'])
 def get_route_warnings_between_stations(route_id, start_station_name, end_station_name):
     # Get the route
@@ -744,13 +854,15 @@ def get_route_warnings_between_stations(route_id, start_station_name, end_statio
 
     # Get the segments of the route between the start station and the end station
     segments = db.session.query(routesegments).filter_by(route_id=route.id).all()
-    start_index = next((index for index, segment in enumerate(segments) if Segment.query.get(segment.segment_id).startStation == start_station.id), None)
-    end_index = next((index for index, segment in enumerate(segments) if Segment.query.get(segment.segment_id).endStation == end_station.id), None)
+    start_index = next((index for index, segment in enumerate(segments) if
+                        Segment.query.get(segment.segment_id).startStation == start_station.id), None)
+    end_index = next((index for index, segment in enumerate(segments) if
+                      Segment.query.get(segment.segment_id).endStation == end_station.id), None)
 
     if start_index is None or end_index is None or start_index > end_index:
         return jsonify({'error': 'Invalid start station or end station'}), 404
 
-    segments_between_stations = segments[start_index:end_index+1]
+    segments_between_stations = segments[start_index:end_index + 1]
 
     warnings_list = []
     for segment in segments_between_stations:
@@ -768,4 +880,3 @@ def get_route_warnings_between_stations(route_id, start_station_name, end_statio
             warnings_list.append(warning_data)
 
     return jsonify(warnings_list)
-

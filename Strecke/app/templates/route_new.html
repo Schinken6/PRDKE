@@ -5,10 +5,10 @@
     <form method="POST">
         {{ form.hidden_tag() }}
         <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
+        {{ form.name(class="form-control") }}
         <label for="trackWidth">Track Width:</label>
 {{ form.trackWidth(class="form-control") }}
-        <table>
+        <table class="table-station">
     <tr>
         <th>Start Station</th>
         <th>End Station</th>
@@ -26,7 +26,7 @@
 </table>
 
         <h2>Selected Segments</h2>
-        <table>
+        <table class="table-station">
     <tr>
         <th>Start Station</th>
         <th>End Station</th>
