@@ -340,9 +340,14 @@ def routes_overview():
 
 from flask import session
 
+from sqlalchemy.orm import aliased
+
 @app.route('/routeNew', methods=['GET', 'POST'])
 @app.route('/routeNew/<int:segment_id>', methods=['GET', 'POST'])  # New route to handle adding or removing a segment
 def routeNew(segment_id=None):
+    # Aliased for multiple join on the same table (Station)
+    StartStation = aliased(Station)
+    EndStation = aliased(Station)
 
     if 'selected_segments' not in session:
         session['selected_segments'] = []
@@ -393,14 +398,45 @@ def routeNew(segment_id=None):
     # Get all segments
     if session['selected_segments']:
         last_added_segment = Segment.query.get(session['selected_segments'][-1])
-        segments = Segment.query.filter(Segment.startStation == last_added_segment.endStation).all()
+        segments = db.session.query(
+            Segment,
+            StartStation.name.label('start_station_name'),
+            EndStation.name.label('end_station_name')
+        ).join(
+            StartStation, Segment.startStation == StartStation.id
+        ).join(
+            EndStation, Segment.endStation == EndStation.id
+        ).filter(
+            Segment.startStation == last_added_segment.endStation,
+            Segment.trackWidth == last_added_segment.trackWidth  # Add this line
+        ).all()
     else:
-        segments = Segment.query.all()
+        segments = db.session.query(
+            Segment,
+            StartStation.name.label('start_station_name'),
+            EndStation.name.label('end_station_name')
+        ).join(
+            StartStation, Segment.startStation == StartStation.id
+        ).join(
+            EndStation, Segment.endStation == EndStation.id
+        ).all()
+
+
     new_route = Route()
     form = RouteForm(obj=new_route)
-    selected_segments = [Segment.query.get(id) for id in session['selected_segments']]
-    return render_template('route_new.html', form=form , segments=segments, selected_segments=selected_segments)
+    selected_segments = [db.session.query(
+        Segment,
+        StartStation.name.label('start_station_name'),
+        EndStation.name.label('end_station_name')
+    ).join(
+        StartStation, Segment.startStation == StartStation.id
+    ).join(
+        EndStation, Segment.endStation == EndStation.id
+    ).filter(
+        Segment.id == id
+    ).first() for id in session['selected_segments']]
 
+    return render_template('route_new.html', form=form , segments=segments, selected_segments=selected_segments)
 
 @app.route('/routeEdit/<int:route_id>', methods=['GET', 'POST'])
 def routeEdit(route_id):

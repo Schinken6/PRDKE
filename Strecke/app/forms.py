@@ -68,6 +68,7 @@ class RouteForm(FlaskForm):
     name = StringField('Route Name', validators=[DataRequired()])
     startStation = SelectField('Start Station', coerce=int, validators=[DataRequired()])
     endStation = SelectField('End Station', coerce=int, validators=[DataRequired()])
+    trackWidth = SelectField('Track Width', choices=[('1000', '1000'), ('1435', '1435')], coerce=int)
     submit = SubmitField('Submit')
 
     def __init__(self, *args, **kwargs):

@@ -7,30 +7,41 @@
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         <label for="trackWidth">Track Width:</label>
-        <input type="number" id="trackWidth" name="trackWidth" required>
-
+{{ form.trackWidth(class="form-control") }}
         <table>
-            <tr>
-                <th>Segment</th>
-                <th>Action</th>
-            </tr>
-            {% for segment in segments %}
-                <tr>
-                    <td>{{ segment.startStation }} - {{ segment.endStation }}</td>
-                    <td><a href="{{ url_for('routeNew', segment_id=segment.id) }}">Add</a></td>
-                </tr>
-            {% endfor %}
-        </table>
+    <tr>
+        <th>Start Station</th>
+        <th>End Station</th>
+        <th>Track Width</th>
+        <th>Action</th>
+    </tr>
+    {% for segment, start_station_name, end_station_name in segments %}
+        <tr>
+            <td>{{ start_station_name }}</td>
+            <td>{{ end_station_name }}</td>
+            <td>{{ segment.trackWidth }}</td>
+            <td><a href="{{ url_for('routeNew', segment_id=segment.id) }}">Add</a></td>
+        </tr>
+    {% endfor %}
+</table>
 
         <h2>Selected Segments</h2>
-        <ul>
-            {% for segment in selected_segments %}
-                <li>
-                    {{ segment.startStation }} - {{ segment.endStation }}
-                    <a href="{{ url_for('routeNew', segment_id=segment.id, remove=True) }}">Remove</a>
-                </li>
-            {% endfor %}
-        </ul>
+        <table>
+    <tr>
+        <th>Start Station</th>
+        <th>End Station</th>
+        <th>Track Width</th>
+        <th>Action</th>
+    </tr>
+    {% for segment, start_station_name, end_station_name in selected_segments %}
+        <tr>
+            <td>{{ start_station_name }}</td>
+            <td>{{ end_station_name }}</td>
+            <td>{{ segment.trackWidth }}</td>
+            <td><a href="{{ url_for('routeNew', segment_id=segment.id, remove=True) }}">Remove</a></td>
+        </tr>
+    {% endfor %}
+</table>
 
         <input type="submit" value="Create">
     </form>
