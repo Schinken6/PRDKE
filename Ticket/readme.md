@@ -26,7 +26,7 @@ https://tickets.max-oberaigner.eu
 
 Login:
 
-**Admin** Username: admin Kennwort: maxobe
+**Admin** Username: admin Kennwort: admin oder maxobe
 
 **User** Username: maxobe Kennnwort: maxobe
 
