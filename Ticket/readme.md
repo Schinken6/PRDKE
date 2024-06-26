@@ -24,6 +24,12 @@ Die Applikation ist nun über http://localhost erreichbar (Port 80).
 Alternativ kann die Applikation auch bis 28.6 über folgenden Link aufgerufen werden:
 https://tickets.max-oberaigner.eu
 
+Login:
+
+**Admin** Username: admin Kennwort: maxobe
+
+**User** Username: maxobe Kennnwort: maxobe
+
 # 1.   Datenmodell
 
 <img width="454" alt="image" src="https://github.com/lnoemeyer/PRDKE/assets/32127275/615956f4-92b3-472b-a8f3-30383d2a9ed3">
