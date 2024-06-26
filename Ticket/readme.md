@@ -18,7 +18,11 @@ cd Ticket
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+flask run
 ```
+Die Applikation ist nun über http://localhost erreichbar (Port 80).
+Alternativ kann die Applikation auch bis 28.6 über folgenden Link aufgerufen werden:
+https://tickets.max-oberaigner.eu
 
 # 1.   Datenmodell
 
