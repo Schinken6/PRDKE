@@ -1085,7 +1085,7 @@ o   [http://localhost:5001/StreckeVonBis/{route_id}/{departure_station}/{arri
 
 #### Verbindungssuche
 
-- **Methode zur Direktverbindungssuche**
+- **Hilfsmethode zur Direktverbindungssuche**
   - **Parameter**
     - Schedules: Fahrpläne
     - `form_start_station`: Startbahnhof
@@ -1109,6 +1109,38 @@ o   [http://localhost:5001/StreckeVonBis/{route_id}/{departure_station}/{arri
     - Wurde Ergebnis gefunden?
       - Ja -> Return Liste
       - Nein -> Return Error
+        
+- **Fall 1: Ohne Umstieg**
+  - Zwischenspeicher leeren (Erklärung folgt)
+  - Benutzereingabe erfassen
+  - Validierung
+  - Alle Fahrpläne von der Fahrplan-API abfragen und auf den aktuellen Tag filtern
+  - Methode zur Direktverbindungssuche (alle Verbindungen innerhalb 24h nach Startzeit) aufrufen
+  - Direktverbindung gefunden?
+    - Ja -> Tickets in Zwischenspeicher speichern und auf Seite zur Ticketanzeige redirecten
+    - Nein -> Fehlerseite anzeigen ("keine Verbindung gefunden")
+
+- **Fall 2: Mit Umstieg**
+  - Zwischenspeicher leeren (Erklärung folgt)
+  - Benutzereingabe erfassen
+  - Validierung
+  - Alle Fahrpläne von der Fahrplan-API abfragen und auf den aktuellen Tag filtern
+  - Methode zur Direktverbindungssuche (alle Verbindungen innerhalb 24h nach Startzeit) aufrufen
+  - Keine Direktverbindung gefunden?
+    - Alle Fahrpläne durchiterieren
+      - Alle Bahnhöfe auf diesem Fahrplan in Liste speichern
+      - Jeden Abschnitt im Fahrplan durchiterieren
+        - Gewünschter Startbahnhof und aktueller Abschnitt liegen auf der Strecke in der richtigen Reihenfolge?
+        - Methode zur Direktverbindungssuche aufrufen (Parameter: gewünschter Startbahnhof; diese Umstiegsstelle als Endbahnhof)
+        - mindestens 1 Ergebnis gefunden?
+          - Methode zur Direktverbindungssuche aufrufen (Parameter: Umstiegsstelle als Startbahnhof; gewünschter Endbahnhof)
+          - mindestens 1 Ergebnis gefunden?
+          - Durch Zwischenspeicher iterieren und überprüfen, ob es Fahrten gibt, mit weniger als 4h Wartezeit bei der Umstiegsstelle
+          - "Pseudo-Ticket" mit allen Infos erstellen und in Liste hinzufügen (wird später in Ticket Objekt konvertiert)
+    - Verbindungen mit 1 Umstieg gefunden?
+      - Ja -> Pseudo-Ticket-Liste in Zwischenspeicher speichern und auf Seite zur Ticketanzeige redirecten
+      - Nein -> Fehlerseite anzeigen ("keine Verbindung gefunden")
+
 
 #### Ticketkauf
 
