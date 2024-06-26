@@ -1084,31 +1084,6 @@ o   [http://localhost:5001/StreckeVonBis/{route_id}/{departure_station}/{arri
     - Erste Aktion wird in Variable `best_discount` gespeichert. Geht alle Aktionen durch und prüft, ob diese besser ist als `best_discount` -> sonst wird diese in `best_discount` gespeichert.
 
 #### Verbindungssuche
-
-- **Hilfsmethode zur Direktverbindungssuche**
-  - **Parameter**
-    - Schedules: Fahrpläne
-    - `form_start_station`: Startbahnhof
-    - `form_end_station`: Endbahnhof
-    - `start_time`: gewünschte Abfahrtszeit
-    - `end_time`: gewünschte späteste Abfahrtszeit (wird vorher berechnet: gewünschte Abfahrtszeit+24h)
-  - **Algorithmus**
-    - Alle Fahrpläne durchiterieren:
-      - Bahnhofliste extrahieren
-      - Start- und Endbahnhof liegen auf der Strecke in der richtigen Reihenfolge? -> sonst Sprung zum nächsten Schleifendurchgang
-      - Zeit aufsummieren, da je Station nur die Zeit für diese Station gespeichert ist
-      - Startbahnhof liegt auf diesem Fahrplan; in gewünschtem Zeitfenster (`start_time`, `end_time`)? -> ja
-        - Abfahrtszeit speichern
-        - `Boolean processing_route = true`
-      - Startbahnhof gefunden? -> ja (`processing_route==true`)
-      - Preise aufsummieren, da je Station nur der Preis für diese eine Station gespeichert ist
-      - Endbahnhof liegt auf diesem Fahrplan?
-        - Ankunftszeit speichern
-      - Vorteilhafteste Aktion anwenden -> siehe oben im Dokument Methode bei Lösungsansatz für Aktionen
-      - Gefundenes Ergebnis in Liste Speichern
-    - Wurde Ergebnis gefunden?
-      - Ja -> Return Liste
-      - Nein -> Return Error
         
 - **Fall 1: Ohne Umstieg**
   - Zwischenspeicher leeren (Erklärung folgt)
@@ -1141,6 +1116,30 @@ o   [http://localhost:5001/StreckeVonBis/{route_id}/{departure_station}/{arri
       - Ja -> Pseudo-Ticket-Liste in Zwischenspeicher speichern und auf Seite zur Ticketanzeige redirecten
       - Nein -> Fehlerseite anzeigen ("keine Verbindung gefunden")
 
+- **Hilfsmethode zur Direktverbindungssuche**
+  - **Parameter**
+    - Schedules: Fahrpläne
+    - `form_start_station`: Startbahnhof
+    - `form_end_station`: Endbahnhof
+    - `start_time`: gewünschte Abfahrtszeit
+    - `end_time`: gewünschte späteste Abfahrtszeit (wird vorher berechnet: gewünschte Abfahrtszeit+24h)
+  - **Algorithmus**
+    - Alle Fahrpläne durchiterieren:
+      - Bahnhofliste extrahieren
+      - Start- und Endbahnhof liegen auf der Strecke in der richtigen Reihenfolge? -> sonst Sprung zum nächsten Schleifendurchgang
+      - Zeit aufsummieren, da je Station nur die Zeit für diese Station gespeichert ist
+      - Startbahnhof liegt auf diesem Fahrplan; in gewünschtem Zeitfenster (`start_time`, `end_time`)? -> ja
+        - Abfahrtszeit speichern
+        - `Boolean processing_route = true`
+      - Startbahnhof gefunden? -> ja (`processing_route==true`)
+      - Preise aufsummieren, da je Station nur der Preis für diese eine Station gespeichert ist
+      - Endbahnhof liegt auf diesem Fahrplan?
+        - Ankunftszeit speichern
+      - Vorteilhafteste Aktion anwenden -> siehe oben im Dokument Methode bei Lösungsansatz für Aktionen
+      - Gefundenes Ergebnis in Liste Speichern
+    - Wurde Ergebnis gefunden?
+      - Ja -> Return Liste
+      - Nein -> Return Error
 
 #### Ticketkauf
 
