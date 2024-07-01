@@ -1,0 +1,76 @@
+
+{% extends "base.html" %}
+{% block content %}
+
+    <h1>Halteplan</h1>
+        <div class="content">
+            <table border="1">
+                <tr>
+                    <th>Halteplan</th>
+                    <th>Startbahnhof</th>
+                    <th>Endbahnhof</th>
+                    <th>Preis</th>
+                    <th>Actions</th>
+                </tr>
+                {% for stationplan in stationplans %}
+                <tr>
+                    <td>{{stationplan.name}}</td>
+                    <td>{{stationplan.startstation}}</td>
+                    <td>{{stationplan.endstation}}</td>
+                    <td>{{stationplan.price}}</td>
+                    <td>
+                        <a href="/stationplan/delete/{{stationplan.id}}"> Delete</a>
+                        <br>
+                        <a href="/stationplan/update/{{stationplan.id}}">Update</a>
+                    </td>
+                </tr>
+                {% endfor %}
+
+            </table>
+            <form action="/stationplan"  method="POST">
+                <br><br>
+
+
+                <br>
+                <table>
+                <tr>
+                    <th>Halteplan</th>
+                    <td> <input  type="text" name="name" id="name"> </td>
+                </tr>
+                 <tr>
+                      <th>Strecke</th>
+                        <td>
+                            {{ form.route.label }}
+                            {{ form.route(class="form-control") }}
+                            {{ form.select() }}
+                            <div id="dynamic-checkboxes">
+                                {% for checkbox in form.dynamic_checkboxes %}
+                                     <label>
+                                         <p>{{ checkbox() }}
+                                         Steyr
+                                        </p>
+                                     </label>
+                                {% endfor %}
+                             </div>
+                        </td>
+                 </tr>
+                 <tr>
+                    <th>Startbahnhof</th>
+                     <td><input  type="text" name="startstation" id="startstation"> </td>
+                </tr>
+                 <tr>
+                    <th>Endbahnhof</th>
+                     <td><input type="text" name="endstation" id="endstation"> </td>
+
+                  </tr>
+                 <tr>
+                    <th>Preis</th>
+                     <td><input type="text" name="price" id="price"> </td>
+                 </tr>
+                    </table>
+
+                    <input type="submit" value="Halteplan hinzufügen">
+
+            </form>
+        </div>
+{% endblock %}

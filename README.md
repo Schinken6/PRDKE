@@ -1,3 +1,5 @@
-This is the ReadME for the PRDKE Project 
-The independant Services are all have there own Seperate documentation README.md files.
-...WIP...
+# Bahn-Verwaltungs-System
+
+This application consists of four Subsystems.
+
+The different Services conatin their individual readMe File which contains a description on how to run the project.

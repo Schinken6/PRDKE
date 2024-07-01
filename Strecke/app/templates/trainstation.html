@@ -43,6 +43,6 @@
         </tbody>
     </table>
     {% if current_user.is_authenticated and current_user.isAdmin %}
-        <a class="create_button" href="{{ url_for('trainstationNew') }}">Neu</a>
+        <a class="create_button" href="{{ url_for('trainstationNew') }}">New</a>
     {% endif %}
 {% endblock %}

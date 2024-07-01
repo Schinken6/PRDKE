@@ -1,0 +1,24 @@
+{% extends "prelogin.html" %}
+
+{% block content %}
+    <h1>Login</h1>
+    <form action="" method="post" novalidate>
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.username(size=32, class="custom-input", placeholder="E-Mail") }}<br>
+            {% for error in form.username.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>
+            {{ form.password(size=32, class="custom-input", placeholder="Passwort") }}<br>
+            {% for error in form.password.errors %}
+            <span style="color: red;">[{{ error }}]</span>
+            {% endfor %}
+        </p>
+        <p>{{ form.submit(class='large-button') }}</p>
+    </form>
+
+    <p>Neuer Benutzer? <a href="{{ url_for('register') }}">Hier registrieren!</a></p>
+
+{% endblock %}

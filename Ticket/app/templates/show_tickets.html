@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        font-size: 0.9em;
+    }
+
+    th, td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+
+    th {
+        background-color: rgb(195, 105, 101);
+        color: white;
+        font-weight: bold;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f2f2f2;
+    }
+
+    tr:hover {
+        background-color: #f8f8f8;
+    }
+
+    button {
+        color: white;
+        background-color: rgb(64, 38, 237);
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+    }
+
+    button:hover {
+        background-color: #365f9c;
+    }
+
+    form {
+        margin: 0;
+    }
+</style>
+<h1>Verfügbare Fahrten</h1>
+<table>
+    <thead>
+        <tr>
+            <th>Zug</th>
+            <th>Abfahrtszeit</th>
+            <th>Ankunftszeit</th>
+            <th>Preis</th>
+            <th>Rabatt</th>
+            <th>Aktionen</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for index, ticket in tickets %}
+        <tr>
+            <td>{{ ticket.train_name }}</td>
+            <td>{{ ticket.departure_time }}</td>
+            <td>{{ ticket.arrival_time }}</td>
+            <td>{{ ticket.price }}</td>
+            <td>{{ ticket.discount if ticket.discount else 'Kein Rabatt' }}</td>
+            <td>
+                <form action="{{ url_for('ticket_details') }}" method="post">
+                    <input type="hidden" name="ticket_index" value="{{ index }}">
+                    <button type="submit">Kaufen</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

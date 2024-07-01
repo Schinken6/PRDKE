@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ticketsoftware{% endblock %}</title>
+<style>
+    body, html {
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background-color: #fff;
+        align-items: center;
+    }
+
+    .triangle-background {
+        width: 80vw;
+        height: 100vh;
+        background-color: rgb(195, 105, 101);
+        position: absolute;
+        top: 0;
+        left: 0;
+        clip-path: polygon(0 0, 80% 0, 0% 100%);
+    }
+
+    .content-area {
+        width: 20%;
+        position: absolute;
+        right: 20%;
+        top: 40%;
+        justify-content: center;
+        height: 100vh;
+    }
+            .large-button {
+        background-color: rgb(64, 38, 237);
+        color: white;
+        width: 100%;
+        padding: 15px 30px;
+        font-size: 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .large-button:hover {
+        background-color: rgb(84, 58, 255);
+    }
+    .custom-input {
+        width: 100%;
+        padding: 8px;
+        border: none;
+        border-bottom: 2px solid #000;
+        outline: none;
+        font-size: 16px;
+        background-color: transparent;
+    }
+</style>
+
+</head>
+<body>
+    <div>
+        <div class="triangle-background"></div>
+        <div class="content-area">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+</body>
+</html>

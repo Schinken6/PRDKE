@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>Wagen verwalten</h1>
+</div>
+<div class="tab">
+    <a href="{{ url_for('train') }}">Triebwagen</a>
+    <a href="{{ url_for('edit_profile') }}">Personenwagen</a>
+    <a href="{{ url_for('logout') }}">Zug</a>
+</div>
+<body>
+    <table>
+        <tr>
+            <th>TriebwagenID</th>
+            <th>Spurbreite in mm</th>
+            <th>Zugkraft in t</th>
+            <th>ZugID</th>
+            <th>Bearbeiten</th>
+        </tr>
+    {% for railcar in railcars %}
+        <tr>
+            <td>{{ railcar.id }}</td>
+            <td>
+                <form class="icon" action="{{ url_for('update_railcar', railcar_id=railcar.id) }}" method="post">
+                    <select name="track_width" class="input-fields">
+                        <option value="1000">1000</option>
+                        <option value="1435">1435</option>
+                        <option selected style="display: none">{{ railcar.track_width }}</option>
+                    </select>
+            </td>
+            <td><input type="number" name="max_tensile_force" value="{{ railcar.max_tensile_force }}" class="input-fields" min="1" step="1"></td>
+            <td>traindID</td>
+            <td><button type="submit" class="icon"><i class="fa-solid fa-user-pen "></i></button>
+                </form>
+                <form class="icon" action="{{ url_for('delete_railcar', railcar_id=railcar.id) }}" method="post">
+                    <button type="submit" class="icon" ><i class="fa-solid fa-trash "></i></button>
+                </form>
+            </td>
+        </tr>
+    {% endfor %}
+    </table>
+</body>
+{% endblock %}
