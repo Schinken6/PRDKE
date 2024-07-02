@@ -50,6 +50,14 @@ Make sure you have Python installed on your machine. You can download Python fro
 
 The application will start locally on port 5001. You can access it by navigating to `http://127.0.0.1:5001` in your web browser.
 
+## Admin User Details
+
+For root acces, use:
+
+Username: admin
+Password: admin
+
+
 ## Built With
 
 - [Flask](https://flask.palletsprojects.com/) - The web framework used
