@@ -347,6 +347,8 @@ def routeNew(segment_id=None):
                 if segment:
                     session['selected_segments'].append(segment_id)
                     session.modified = True
+        else:
+            session['selected_segments'] = []
 
     if request.method == 'POST':
         # Get form data
@@ -476,7 +478,8 @@ def routeEdit(route_id, segment_id=None):
 
         return redirect(url_for('routes_overview'))
 
-    if (route_id and segment_id is None):
+    if route_id and (segment_id is None):
+        session['selected_segments'] = []
         route = Route.query.get(route_id)
         if route is None:
             flash('Route not found.')
@@ -484,10 +487,9 @@ def routeEdit(route_id, segment_id=None):
         form = RouteForm(obj=route)
         form.trackWidth = route.trackWidth
         form.name = route.name
-        route_segments = db.session.query(routesegments).filter(route_id==route_id).all()
+        route_segments = db.session.query(routesegments).filter(routesegments.c.route_id == route_id).all()
         for route_segment in route_segments:
-            segment = Segment.query.get(route_segment.segment_id)
-            session['selected_segments'].append(segment)
+            session['selected_segments'].append(route_segment.segment_id)
 
     # Get all segments
     if session['selected_segments']:
